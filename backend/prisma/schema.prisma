@@ -149,7 +149,7 @@ model Instrument {
   updatedAt          DateTime         @updatedAt
 
   // Relations
-  owner            OwnerRelation      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner            User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   applications     VerificationApplication[]
   certificates     Certificate[]
 
@@ -170,9 +170,9 @@ model VerificationApplication {
   updatedAt         DateTime          @updatedAt
 
   // Relations
-  instrument   InstrumentRelation   @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
-  applicant    ApplicantRelation    @relation(fields: [applicantId], references: [id], onDelete: Cascade)
-  assignedOfficer User?             @relation(fields: [assignedOfficerId], references: [id])
+  instrument   Instrument   @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  applicant    User         @relation("Applicant", fields: [applicantId], references: [id], onDelete: Cascade)
+  assignedOfficer User?     @relation(fields: [assignedOfficerId], references: [id])
   inspection    VerificationInspection?
 
   @@index([instrumentId])
@@ -194,9 +194,9 @@ model VerificationInspection {
   updatedAt         DateTime         @updatedAt
 
   // Relations
-  application VerificationApplicationRelation @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  officer     OfficerRelation                 @relation(fields: [officerId], references: [id])
-  rule        RuleRelation                    @relation(fields: [ruleId], references: [id])
+  application VerificationApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  officer     User                    @relation(fields: [officerId], references: [id])
+  rule        InstrumentTypeRule      @relation(fields: [ruleId], references: [id])
   readings    VerificationReading[]
   certificate Certificate?
 
@@ -218,7 +218,7 @@ model VerificationReading {
   createdAt       DateTime @default(now())
 
   // Relations
-  inspection VerificationInspectionRelation @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  inspection VerificationInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
 
   @@index([inspectionId])
 }
@@ -237,9 +237,9 @@ model Certificate {
   createdAt             DateTime         @default(now())
 
   // Relations
-  verificationInspection VerificationInspectionRelation @relation(fields: [verificationInspectionId], references: [id])
-  instrument            InstrumentRelation              @relation(fields: [verificationInspectionId], references: [id])
-  revokedBy             User?                           @relation("RevokedBy", fields: [revokedById], references: [id])
+  verificationInspection VerificationInspection @relation(fields: [verificationInspectionId], references: [id])
+  instrument            Instrument              @relation(fields: [verificationInspectionId], references: [id])
+  revokedBy             User?                   @relation("RevokedBy", fields: [revokedById], references: [id])
 
   @@index([certificateNumber])
   @@index([qrToken])
@@ -257,7 +257,7 @@ model Notification {
   createdAt DateTime         @default(now())
 
   // Relations
-  user UserRelation @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([isRead])
@@ -295,46 +295,3 @@ model FederationLog {
   @@index([status])
 }
 
-// ================================================================
-// RELATIONS (for clarity)
-// ================================================================
-
-relation OwnerRelation extends Instrument {
-  owner User @relation(fields: [ownerId], references: [id])
-}
-
-relation InstrumentRelation extends VerificationApplication {
-  instrument Instrument @relation(fields: [instrumentId], references: [id])
-}
-
-relation ApplicantRelation extends VerificationApplication {
-  applicant User @relation(fields: [applicantId], references: [id])
-}
-
-relation VerificationApplicationRelation extends VerificationInspection {
-  application VerificationApplication @relation(fields: [applicationId], references: [id])
-}
-
-relation OfficerRelation extends VerificationInspection {
-  officer User @relation(fields: [officerId], references: [id])
-}
-
-relation RuleRelation extends VerificationInspection {
-  rule InstrumentTypeRule @relation(fields: [ruleId], references: [id])
-}
-
-relation VerificationInspectionRelation extends VerificationReading {
-  inspection VerificationInspection @relation(fields: [inspectionId], references: [id])
-}
-
-relation UserRelation extends Notification {
-  user User @relation(fields: [userId], references: [id])
-}
-
-relation InstrumentRelation extends Certificate {
-  instrument Instrument @relation(fields: [verificationInspectionId], references: [id])
-}
-
-relation VerificationInspectionRelation extends Certificate {
-  verificationInspection VerificationInspection @relation(fields: [verificationInspectionId], references: [id])
-}
