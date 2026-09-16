@@ -92,3 +92,4 @@ coverage/
 *.tar.xz
 *.tar.zst
 ```.next/
+.next/
