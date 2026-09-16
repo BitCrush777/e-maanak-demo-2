@@ -92,22 +92,23 @@ enum AuditAction {
 // ================================================================
 
 model User {
-  id               String    @id @default(uuid())
-  supabaseAuthId   String    @unique
-  email            String    @unique
-  fullName         String
-  role             Role      @default(OWNER)
-  status           UserStatus @default(ACTIVE)
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id             String     @id @default(uuid())
+  supabaseAuthId String     @unique
+  email          String     @unique
+  fullName       String
+  role           Role       @default(OWNER)
+  status         UserStatus @default(ACTIVE)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   // Relations
-  instruments      Instrument[]
-  applications     VerificationApplication[]
-  inspections      VerificationInspection[]
-  notifications    Notification[]
-  auditLogs        AuditLog[]
-  revokedCertificates Certificate[] @relation("RevokedBy")
+  instruments          Instrument[]
+  applications         VerificationApplication[] @relation("Applicant")
+  assignedApplications VerificationApplication[] @relation("AssignedOfficer")
+  inspections          VerificationInspection[]
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+  revokedCertificates  Certificate[]             @relation("RevokedBy")
 
   @@index([supabaseAuthId])
   @@index([email])
@@ -115,20 +116,20 @@ model User {
 }
 
 model InstrumentTypeRule {
-  id              String   @id @default(uuid())
-  instrumentType  String
-  ruleCode        String   @unique
-  ruleVersion     String
-  description     String?
-  isActive        Boolean  @default(true)
-  effectiveDate   DateTime @default(now())
-  toleranceConfig Json     // { absoluteTolerance: Decimal, percentageTolerance: Decimal }
-  testPointSchedule Json   // [20, 50, 100] or custom schedule
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String   @id @default(uuid())
+  instrumentType    String
+  ruleCode          String   @unique
+  ruleVersion       String
+  description       String?
+  isActive          Boolean  @default(true)
+  effectiveDate     DateTime @default(now())
+  toleranceConfig   Json // { absoluteTolerance: Decimal, percentageTolerance: Decimal }
+  testPointSchedule Json // [20, 50, 100] or custom schedule
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   // Relations
-  inspections     VerificationInspection[]
+  inspections VerificationInspection[]
 
   @@index([instrumentType])
   @@index([ruleCode])
@@ -136,28 +137,28 @@ model InstrumentTypeRule {
 }
 
 model Instrument {
-  id                 String           @id @default(uuid())
-  ownerId            String
-  type               String
-  manufacturer       String
-  model              String
-  serialNumber       String
-  ratedCapacity      String?
-  verificationInterval Int            @default(12) // months
-  status             InstrumentStatus @default(REGISTERED)
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
+  id                   String           @id @default(uuid())
+  ownerId              String
+  type                 String
+  manufacturer         String
+  model                String
+  serialNumber         String
+  ratedCapacity        String?
+  verificationInterval Int              @default(12) // months
+  status               InstrumentStatus @default(REGISTERED)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
   // Relations
-  owner            User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  applications     VerificationApplication[]
-  certificates     Certificate[]
+  owner        User                      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  applications VerificationApplication[]
+  certificates Certificate[]
 
+  @@unique([ownerId, serialNumber])
   @@index([ownerId])
   @@index([serialNumber])
   @@index([type])
   @@index([status])
-  @@unique([ownerId, serialNumber])
 }
 
 model VerificationApplication {
@@ -170,10 +171,10 @@ model VerificationApplication {
   updatedAt         DateTime          @updatedAt
 
   // Relations
-  instrument   Instrument   @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
-  applicant    User         @relation("Applicant", fields: [applicantId], references: [id], onDelete: Cascade)
-  assignedOfficer User?     @relation(fields: [assignedOfficerId], references: [id])
-  inspection    VerificationInspection?
+  instrument      Instrument              @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  applicant       User                    @relation("Applicant", fields: [applicantId], references: [id], onDelete: Cascade)
+  assignedOfficer User?                   @relation("AssignedOfficer", fields: [assignedOfficerId], references: [id])
+  inspection      VerificationInspection?
 
   @@index([instrumentId])
   @@index([applicantId])
@@ -207,15 +208,15 @@ model VerificationInspection {
 }
 
 model VerificationReading {
-  id              String  @id @default(uuid())
+  id              String           @id @default(uuid())
   inspectionId    String
   pointName       String
-  referenceLoad   Decimal @db.Decimal(15, 4)
-  observedValue   Decimal @db.Decimal(15, 4)
-  error           Decimal @db.Decimal(15, 4)
-  percentageError Decimal @db.Decimal(15, 4)
+  referenceLoad   Decimal          @db.Decimal(15, 4)
+  observedValue   Decimal          @db.Decimal(15, 4)
+  error           Decimal          @db.Decimal(15, 4)
+  percentageError Decimal          @db.Decimal(15, 4)
   result          InspectionResult
-  createdAt       DateTime @default(now())
+  createdAt       DateTime         @default(now())
 
   // Relations
   inspection VerificationInspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
@@ -224,22 +225,22 @@ model VerificationReading {
 }
 
 model Certificate {
-  id                    String           @id @default(uuid())
-  certificateNumber     String           @unique
-  verificationInspectionId String        @unique
-  qrToken               String           @unique
-  issueDate             DateTime         @default(now())
-  expiryDate            DateTime
-  status                CertificateStatus @default(VALID)
-  revokedAt             DateTime?
-  revocationReason      String?
-  revokedById           String?
-  createdAt             DateTime         @default(now())
+  id                       String            @id @default(uuid())
+  certificateNumber        String            @unique
+  verificationInspectionId String            @unique
+  qrToken                  String            @unique
+  issueDate                DateTime          @default(now())
+  expiryDate               DateTime
+  status                   CertificateStatus @default(VALID)
+  revokedAt                DateTime?
+  revocationReason         String?
+  revokedById              String?
+  createdAt                DateTime          @default(now())
 
   // Relations
-  verificationInspection VerificationInspection @relation(fields: [verificationInspectionId], references: [id])
-  instrument            Instrument              @relation(fields: [verificationInspectionId], references: [id])
-  revokedBy             User?                   @relation("RevokedBy", fields: [revokedById], references: [id])
+  verificationInspection VerificationInspection @relation(fields: [verificationInspectionId], references: [id], map: "Certificate_inspection_fkey")
+  instrument             Instrument             @relation(fields: [verificationInspectionId], references: [id], map: "Certificate_instrument_fkey")
+  revokedBy              User?                  @relation("RevokedBy", fields: [revokedById], references: [id])
 
   @@index([certificateNumber])
   @@index([qrToken])
@@ -264,15 +265,15 @@ model Notification {
 }
 
 model AuditLog {
-  id          String      @id @default(uuid())
-  userId      String?
-  action      AuditAction
-  entityType  String?
-  entityId    String?
-  metadata    Json?
-  ipAddress   String?
-  userAgent   String?
-  createdAt   DateTime    @default(now())
+  id         String      @id @default(uuid())
+  userId     String?
+  action     AuditAction
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime    @default(now())
 
   // Relations
   user User? @relation(fields: [userId], references: [id])
@@ -283,15 +284,14 @@ model AuditLog {
 }
 
 model FederationLog {
-  id            String   @id @default(uuid())
+  id             String   @id @default(uuid())
   federationType String
-  operation     String
-  payload       Json
-  status        String
-  response      Json?
-  createdAt     DateTime @default(now())
+  operation      String
+  payload        Json
+  status         String
+  response       Json?
+  createdAt      DateTime @default(now())
 
   @@index([federationType])
   @@index([status])
 }
-
