@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { mockStore } from '../services/mockData';
 import { Link } from 'react-router-dom';
+import { PageHeader } from '../components/common/PageHeader';
+import { StatusBadge } from '../components/common/StatusBadge';
+import { Alert } from '../components/common/Alert';
+import { DataTable, ColumnDef } from '../components/common/DataTable';
+import { Modal } from '../components/common/Modal';
+import { CertificateDocument, CertificateData } from '../components/certificate/CertificateDocument';
 
 export const AdminDashboard: React.FC = () => {
   const [instruments, setInstruments] = useState<any[]>([]);
@@ -10,11 +16,18 @@ export const AdminDashboard: React.FC = () => {
   const [rules, setRules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Revocation state
-  const [revokeCertNum, setRevokeCertNum] = useState<string | null>(null);
+  // Active Admin Workspace Tab
+  const [adminTab, setAdminTab] = useState<'overview' | 'certificates' | 'instruments' | 'rules' | 'audit'>('overview');
+
+  // Revocation state & modal
+  const [isRevokeModalOpen, setIsRevokeModalOpen] = useState(false);
+  const [revokeCertNum, setRevokeCertNum] = useState('');
   const [revokeReason, setRevokeReason] = useState('');
   const [revoking, setRevoking] = useState(false);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Certificate Preview Modal
+  const [previewCert, setPreviewCert] = useState<CertificateData | null>(null);
 
   useEffect(() => {
     loadData();
@@ -40,7 +53,13 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleRevoke = async (e: React.FormEvent) => {
+  const handleOpenRevokeModal = (certNumber: string) => {
+    setRevokeCertNum(certNumber);
+    setRevokeReason('');
+    setIsRevokeModalOpen(true);
+  };
+
+  const handleRevokeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!revokeCertNum || !revokeReason.trim()) return;
 
@@ -48,259 +67,610 @@ export const AdminDashboard: React.FC = () => {
     try {
       const res = await api.revokeCertificate(revokeCertNum, revokeReason);
       if (res.data) {
-        setNotice(`Certificate ${revokeCertNum} revoked successfully.`);
-        setRevokeCertNum(null);
+        setNotice({
+          type: 'success',
+          message: `Certificate ${revokeCertNum} revoked successfully. Registry updated.`,
+        });
+        setIsRevokeModalOpen(false);
+        setRevokeCertNum('');
         setRevokeReason('');
         await loadData();
       }
-    } catch (e) {
-      console.error('Revocation error:', e);
+    } catch (e: any) {
+      setNotice({
+        type: 'error',
+        message: e.message || 'Failed to revoke certificate.',
+      });
     } finally {
       setRevoking(false);
     }
   };
 
   const handleResetDemo = () => {
-    if (window.confirm('Reset all demo data (instruments, inspections, certificates) to clean default state?')) {
+    if (window.confirm('Reset all demo data (instruments, inspections, certificates) to clean default seed state?')) {
       mockStore.resetDemo();
       loadData();
-      setNotice('Demo database reset to default seed state.');
+      setNotice({
+        type: 'success',
+        message: 'Demo database reset to default baseline seed state.',
+      });
     }
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  // Mock Deterministic Audit Trail
+  const auditRecords = [
+    {
+      id: 'AUD-9021',
+      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+      actor: 'system.engine@emaanak',
+      action: 'MPE_TOLERANCE_EVALUATION',
+      entity: 'VerificationInspection',
+      ref: 'insp-001',
+      result: 'PASS',
+      details: 'Evaluated 3 test points against NAWI v1.0 MPE threshold (±0.0100 kg). Conformance verified.',
+    },
+    {
+      id: 'AUD-9020',
+      timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+      actor: 'officer.rajesh@emaanak.gov.in',
+      action: 'CERTIFICATE_GENERATION',
+      entity: 'Certificate',
+      ref: 'CERT-2026-INSP-9981',
+      result: 'COMMITTED',
+      details: 'Issued cryptographic QR token and signed certificate for Mettler Toledo IND570.',
+    },
+    {
+      id: 'AUD-9019',
+      timestamp: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+      actor: 'owner@emaanak.demo',
+      action: 'APPLICATION_SUBMISSION',
+      entity: 'VerificationApplication',
+      ref: 'app-002',
+      result: 'SUBMITTED',
+      details: 'Lodged verification request for Sartorius AG Quintix 513-1S.',
+    },
+    {
+      id: 'AUD-9018',
+      timestamp: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+      actor: 'admin@emaanak.gov.in',
+      action: 'STATUTORY_RULE_UPDATE',
+      entity: 'ToleranceRule',
+      ref: 'WEIGHING_SCALE_V1',
+      result: 'ACTIVE',
+      details: 'Synchronized Rule Version 1.0 test point schedules (20%, 50%, 100% capacity).',
+    },
+  ];
+
+  // Certificate Table Columns
+  const certColumns: ColumnDef<any>[] = [
+    {
+      header: 'Certificate Reference',
+      accessor: (row) => (
         <div>
-          <div className="flex items-center space-x-2">
-            <h1 className="text-2xl font-bold text-sovereign-navy">
-              Legal Metrology Directorate Oversight
-            </h1>
-            <span className="text-xs px-2 py-0.5 rounded font-mono bg-emerald-100 text-emerald-800 font-semibold">
-              Root Authority
-            </span>
-          </div>
-          <p className="text-sm text-slate-500 mt-1">
-            System administration, statutory tolerance rules, and nationwide verification registry.
-          </p>
+          <span className="font-mono font-bold text-gov-navy text-xs block">{row.certificateNumber}</span>
+          <span className="text-[10px] text-slate-500 font-mono">Token: {row.qrToken}</span>
         </div>
-
-        <button
-          onClick={handleResetDemo}
-          className="px-3.5 py-2 border border-slate-300 text-slate-700 hover:bg-slate-100 rounded-lg text-xs font-semibold transition"
-        >
-          🔄 Reset Demo Environment
-        </button>
-      </div>
-
-      {notice && (
-        <div className="p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-xs flex justify-between items-center">
-          <span>{notice}</span>
-          <button onClick={() => setNotice(null)} className="font-bold">
-            ✕
+      ),
+      sortable: true,
+      sortValue: (r) => r.certificateNumber,
+    },
+    {
+      header: 'Equipment',
+      accessor: (row) => (
+        <div>
+          <strong className="block text-slate-800">{row.instrument?.model}</strong>
+          <span className="font-mono text-[10.5px] text-slate-500">S/N: {row.instrument?.serialNumber}</span>
+        </div>
+      ),
+    },
+    {
+      header: 'Custodian',
+      accessor: (row) => <span className="text-slate-700">{row.applicantName || 'Sovereign Agro Logistics'}</span>,
+    },
+    {
+      header: 'Validity Span',
+      accessor: (row) => (
+        <div className="text-[11px]">
+          <span className="text-slate-500 block">
+            Issued: {new Date(row.issueDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+          </span>
+          <span className="font-semibold text-slate-800">
+            Expires: {new Date(row.expiryDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+          </span>
+        </div>
+      ),
+    },
+    {
+      header: 'Status',
+      accessor: (row) => <StatusBadge status={row.status} />,
+      sortable: true,
+      sortValue: (r) => r.status,
+    },
+    {
+      header: 'Administrative Action',
+      accessor: (row) => (
+        <div className="flex items-center space-x-1.5">
+          <button
+            onClick={() => setPreviewCert(row)}
+            type="button"
+            className="gov-btn-secondary py-0.5 px-2 text-[10.5px]"
+          >
+            Preview
           </button>
+          {row.status === 'VALID' ? (
+            <button
+              onClick={() => handleOpenRevokeModal(row.certificateNumber)}
+              type="button"
+              className="gov-btn-danger py-0.5 px-2 text-[10.5px]"
+            >
+              Revoke
+            </button>
+          ) : (
+            <span className="text-[10px] text-rose-700 font-semibold px-1">Revoked</span>
+          )}
         </div>
+      ),
+    },
+  ];
+
+  // Instrument Table Columns
+  const instrumentColumns: ColumnDef<any>[] = [
+    {
+      header: 'Serial Number',
+      accessor: (row) => <span className="font-mono font-bold text-gov-navy">{row.serialNumber}</span>,
+      sortable: true,
+      sortValue: (r) => r.serialNumber,
+    },
+    {
+      header: 'Category',
+      accessor: (row) => <span>{row.type?.replace(/_/g, ' ')}</span>,
+    },
+    {
+      header: 'Manufacturer & Model',
+      accessor: (row) => (
+        <div>
+          <strong className="block text-slate-800">{row.model}</strong>
+          <span className="text-slate-500 text-[11px]">{row.manufacturer}</span>
+        </div>
+      ),
+    },
+    {
+      header: 'Capacity',
+      accessor: (row) => <span>{row.ratedCapacity || 'Standard'}</span>,
+    },
+    {
+      header: 'Status',
+      accessor: (row) => <StatusBadge status={row.status} />,
+      sortable: true,
+      sortValue: (r) => r.status,
+    },
+  ];
+
+  // Rules Table Columns
+  const ruleColumns: ColumnDef<any>[] = [
+    {
+      header: 'Rule Code',
+      accessor: (row) => <span className="font-mono font-bold text-gov-navy">{row.ruleCode}</span>,
+    },
+    {
+      header: 'Version',
+      accessor: (row) => <span className="font-mono font-bold text-emerald-800">v{row.ruleVersion}</span>,
+    },
+    {
+      header: 'Instrument Type',
+      accessor: (row) => <span>{row.instrumentType?.replace(/_/g, ' ')}</span>,
+    },
+    {
+      header: 'Tolerance Specification',
+      accessor: (row) => (
+        <span className="font-mono text-[11px] text-slate-700">
+          Absolute: ±{row.toleranceConfig?.absoluteTolerance || '0.0100'} | Relative: {row.toleranceConfig?.relativeTolerancePercent || '0.05'}%
+        </span>
+      ),
+    },
+    {
+      header: 'Description',
+      accessor: (row) => <span className="text-slate-600 text-xs">{row.description}</span>,
+    },
+  ];
+
+  // Audit Table Columns
+  const auditColumns: ColumnDef<any>[] = [
+    {
+      header: 'Audit ID & Time',
+      accessor: (row) => (
+        <div>
+          <span className="font-mono font-bold text-gov-navy text-[11px] block">{row.id}</span>
+          <span className="text-[10px] text-slate-500">
+            {new Date(row.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          </span>
+        </div>
+      ),
+    },
+    {
+      header: 'Actor',
+      accessor: (row) => <span className="font-mono text-slate-700 text-xs">{row.actor}</span>,
+    },
+    {
+      header: 'Action Executed',
+      accessor: (row) => <span className="font-semibold text-slate-900 text-xs">{row.action}</span>,
+    },
+    {
+      header: 'Target Entity',
+      accessor: (row) => (
+        <span className="font-mono text-slate-600 text-[11px]">
+          {row.entity} ({row.ref})
+        </span>
+      ),
+    },
+    {
+      header: 'Result',
+      accessor: (row) => <StatusBadge status={row.result} />,
+    },
+    {
+      header: 'Audit Telemetry Details',
+      accessor: (row) => <span className="text-slate-600 text-[11px]">{row.details}</span>,
+    },
+  ];
+
+  return (
+    <div className="space-y-5">
+      {/* Page Header */}
+      <PageHeader
+        title="Directorate Administrative Console"
+        description="Central regulatory oversight, statutory tolerance rules engine, nationwide certificate revocation registry, and system audit telemetry."
+        breadcrumbs={[{ label: 'Administrative Portal' }, { label: 'Directorate Oversight' }]}
+        badge={
+          <span className="text-[10px] font-semibold font-mono bg-emerald-100 text-emerald-900 px-2 py-0.5 border border-emerald-300 rounded-xs uppercase">
+            Legal Metrology Root Authority
+          </span>
+        }
+        actions={
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleResetDemo}
+              type="button"
+              className="gov-btn-secondary text-xs"
+              title="Reset mock database to initial seed"
+            >
+              🔄 Reset Demo Database
+            </button>
+          </div>
+        }
+      />
+
+      {/* Notifications */}
+      {notice && (
+        <Alert
+          type={notice.type}
+          title={notice.type === 'success' ? 'Administrative Action Recorded' : 'System Error'}
+          onClose={() => setNotice(null)}
+        >
+          {notice.message}
+        </Alert>
       )}
 
-      {/* Metrics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-            Total Instruments
-          </div>
-          <div className="text-2xl font-bold text-slate-900 mt-1">{instruments.length}</div>
+      {/* Administrative Metrics Bar */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+        <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
+          <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            Registered Instruments
+          </span>
+          <div className="text-xl font-bold text-gov-navy mt-1 font-mono">{instruments.length}</div>
+          <span className="text-[10.5px] text-slate-500 block mt-0.5">Commercial equipment census</span>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">
-            Verification Applications
-          </div>
-          <div className="text-2xl font-bold text-blue-900 mt-1">{applications.length}</div>
+        <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
+          <span className="block text-[10px] font-bold text-gov-blue uppercase tracking-wider">
+            Active Applications
+          </span>
+          <div className="text-xl font-bold text-gov-blue mt-1 font-mono">{applications.length}</div>
+          <span className="text-[10.5px] text-slate-500 block mt-0.5">Verification requests lodged</span>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <div className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
-            Active Certificates
-          </div>
-          <div className="text-2xl font-bold text-emerald-700 mt-1">
+        <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
+          <span className="block text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+            Valid Compliance Certificates
+          </span>
+          <div className="text-xl font-bold text-emerald-900 mt-1 font-mono">
             {certificates.filter((c) => c.status === 'VALID').length}
           </div>
+          <span className="text-[10.5px] text-slate-500 block mt-0.5">Legally authorized for trade</span>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-          <div className="text-[11px] font-bold text-rose-700 uppercase tracking-wider">
+        <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
+          <span className="block text-[10px] font-bold text-rose-800 uppercase tracking-wider">
             Revoked Certificates
-          </div>
-          <div className="text-2xl font-bold text-rose-700 mt-1">
+          </span>
+          <div className="text-xl font-bold text-rose-900 mt-1 font-mono">
             {certificates.filter((c) => c.status === 'REVOKED').length}
           </div>
+          <span className="text-[10.5px] text-slate-500 block mt-0.5">De-certified / Voided records</span>
         </div>
       </div>
 
-      {/* Statutory Rules Section */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800">
-            Statutory Metrological Rules & Permissible Tolerances
-          </h2>
-          <span className="text-xs text-slate-500">{rules.length} Active Specs</span>
-        </div>
+      {/* Navigation Tabs (Administrative Workspaces) */}
+      <div className="border-b border-slate-300">
+        <nav className="flex space-x-1" aria-label="Administrative Console Tabs">
+          <button
+            onClick={() => setAdminTab('overview')}
+            type="button"
+            className={`py-2 px-4 text-xs font-bold uppercase tracking-wider border-b-2 transition ${
+              adminTab === 'overview'
+                ? 'border-gov-navy text-gov-navy bg-white border-t border-l border-r border-slate-300'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+            }`}
+          >
+            Directorate Overview
+          </button>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {rules.map((r) => (
-            <div
-              key={r.id}
-              className="p-4 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-2"
-            >
-              <div className="flex justify-between items-center">
-                <span className="font-mono font-bold text-sovereign-navy text-sm">
-                  {r.ruleCode}
-                </span>
-                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">
-                  v{r.ruleVersion} ACTIVE
-                </span>
-              </div>
+          <button
+            onClick={() => setAdminTab('certificates')}
+            type="button"
+            className={`py-2 px-4 text-xs font-bold uppercase tracking-wider border-b-2 transition ${
+              adminTab === 'certificates'
+                ? 'border-gov-navy text-gov-navy bg-white border-t border-l border-r border-slate-300'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+            }`}
+          >
+            Certificates & Revocation ({certificates.length})
+          </button>
 
-              <p className="text-slate-600 line-clamp-2">{r.description}</p>
+          <button
+            onClick={() => setAdminTab('instruments')}
+            type="button"
+            className={`py-2 px-4 text-xs font-bold uppercase tracking-wider border-b-2 transition ${
+              adminTab === 'instruments'
+                ? 'border-gov-navy text-gov-navy bg-white border-t border-l border-r border-slate-300'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+            }`}
+          >
+            Instruments Census ({instruments.length})
+          </button>
 
-              <div className="pt-2 border-t border-slate-200 space-y-1">
-                <div>
-                  <span className="text-slate-400">Absolute Tolerance:</span>{' '}
-                  <strong className="text-slate-800 font-mono">
-                    ±{r.toleranceConfig?.absoluteTolerance}
-                  </strong>
-                </div>
-                <div>
-                  <span className="text-slate-400">Percentage Tolerance:</span>{' '}
-                  <strong className="text-slate-800 font-mono">
-                    {r.toleranceConfig?.percentageTolerance}%
-                  </strong>
-                </div>
-                <div>
-                  <span className="text-slate-400">Test Point Schedule:</span>{' '}
-                  <span className="font-mono text-slate-700">
-                    [{r.testPointSchedule?.join('%, ')}%]
+          <button
+            onClick={() => setAdminTab('rules')}
+            type="button"
+            className={`py-2 px-4 text-xs font-bold uppercase tracking-wider border-b-2 transition ${
+              adminTab === 'rules'
+                ? 'border-gov-navy text-gov-navy bg-white border-t border-l border-r border-slate-300'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+            }`}
+          >
+            Statutory Rules ({rules.length})
+          </button>
+
+          <button
+            onClick={() => setAdminTab('audit')}
+            type="button"
+            className={`py-2 px-4 text-xs font-bold uppercase tracking-wider border-b-2 transition ${
+              adminTab === 'audit'
+                ? 'border-gov-navy text-gov-navy bg-white border-t border-l border-r border-slate-300'
+                : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+            }`}
+          >
+            Audit Telemetry ({auditRecords.length})
+          </button>
+        </nav>
+      </div>
+
+      {/* TAB 1: OVERVIEW */}
+      {adminTab === 'overview' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* System Status Panel */}
+            <div className="bg-white border border-slate-300 p-4 rounded-xs shadow-xs space-y-3">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-2">
+                Operational Synchronization & Health
+              </h2>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-600">Verification Registry Status</span>
+                  <span className="font-semibold text-emerald-800 flex items-center space-x-1">
+                    <span>●</span>
+                    <span>ONLINE (Local Node Verified)</span>
                   </span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-600">Tolerance Evaluation Engine</span>
+                  <span className="font-mono text-slate-800">Deterministic MPE Rule Engine v1.0</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                  <span className="text-slate-600">Offline Queue Cache</span>
+                  <span className="font-mono text-slate-800">localStorage / In-Memory Mock Store</span>
+                </div>
+                <div className="flex justify-between items-center py-1">
+                  <span className="text-slate-600">Last System Sync</span>
+                  <span className="font-mono text-slate-800">{new Date().toLocaleTimeString('en-IN')}</span>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Certificate Registry & Revocation Section */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800">
-            National Certificate Registry ({certificates.length})
-          </h2>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 uppercase font-bold">
-              <tr>
-                <th className="px-4 py-3">Certificate Number</th>
-                <th className="px-4 py-3">Instrument</th>
-                <th className="px-4 py-3">Serial No</th>
-                <th className="px-4 py-3">Valid Until</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {certificates.map((cert) => (
-                <tr key={cert.id} className="hover:bg-slate-50 transition">
-                  <td className="px-4 py-3 font-mono font-bold text-sovereign-navy">
-                    {cert.certificateNumber}
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-slate-900">
-                    {cert.instrument?.model}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-slate-600">
-                    {cert.instrument?.serialNumber}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">
-                    {new Date(cert.expiryDate).toLocaleDateString('en-IN')}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        cert.status === 'VALID'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-rose-100 text-rose-800'
-                      }`}
-                    >
-                      {cert.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right space-x-2">
-                    <Link
-                      to={`/verify/${cert.qrToken}`}
-                      className="text-sovereign-brass hover:underline font-semibold"
-                    >
-                      View QR
-                    </Link>
-                    {cert.status === 'VALID' && (
-                      <button
-                        onClick={() => setRevokeCertNum(cert.certificateNumber)}
-                        className="text-rose-600 hover:underline font-semibold"
-                      >
-                        Revoke
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Revocation Modal */}
-      {revokeCertNum && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-            <h3 className="text-base font-bold text-rose-800">
-              Revoke Digital Metrology Certificate
-            </h3>
-            <p className="text-xs text-slate-600 mt-1">
-              Revoking Certificate <strong className="font-mono">{revokeCertNum}</strong> will immediately invalidate it across the public trust registry.
-            </p>
-
-            <form onSubmit={handleRevoke} className="mt-4 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Mandatory Statutory Reason for Revocation
-                </label>
-                <textarea
-                  required
-                  rows={3}
-                  value={revokeReason}
-                  onChange={(e) => setRevokeReason(e.target.value)}
-                  placeholder="e.g. Broken lead seal detected during surprise market inspection."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 outline-none focus:ring-2 focus:ring-rose-700"
+            {/* Quick Revocation Tool */}
+            <div className="bg-white border border-slate-300 p-4 rounded-xs shadow-xs space-y-3">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-rose-800 border-b border-slate-200 pb-2">
+                Statutory Certificate Revocation Console
+              </h2>
+              <p className="text-xs text-slate-600">
+                Immediately revoke a certificate by entering its official reference number and statutory justification.
+              </p>
+              <div className="flex items-center space-x-2 pt-2">
+                <input
+                  type="text"
+                  placeholder="e.g. CERT-2026-INSP-9981"
+                  value={revokeCertNum}
+                  onChange={(e) => setRevokeCertNum(e.target.value)}
+                  className="gov-input font-mono text-xs flex-1"
                 />
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-3 border-t border-slate-200">
                 <button
                   type="button"
-                  onClick={() => setRevokeCertNum(null)}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 text-xs rounded-lg hover:bg-slate-50"
+                  onClick={() => setIsRevokeModalOpen(true)}
+                  disabled={!revokeCertNum.trim()}
+                  className="gov-btn-danger text-xs font-bold uppercase whitespace-nowrap"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={revoking}
-                  className="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg disabled:opacity-50"
-                >
-                  {revoking ? 'Revoking...' : 'Confirm Revocation'}
+                  Initiate Revocation
                 </button>
               </div>
-            </form>
+            </div>
+          </div>
+
+          {/* Recent Audit Telemetry Table */}
+          <DataTable
+            columns={auditColumns}
+            data={auditRecords}
+            keyExtractor={(row) => row.id}
+            title="Recent Directorate Audit Activity"
+            subtitle="Immutable chronological telemetry of verification actions and tolerance evaluations."
+            pageSize={5}
+          />
+        </div>
+      )}
+
+      {/* TAB 2: CERTIFICATES & REVOCATION */}
+      {adminTab === 'certificates' && (
+        <DataTable
+          columns={certColumns}
+          data={certificates}
+          keyExtractor={(row) => row.id}
+          title="National Compliance Certificates Registry"
+          subtitle="Directory of issued certificates with cryptographic tokens and revocation authority."
+          searchPlaceholder="Search certificate number, token, serial number..."
+          searchFilter={(row, q) =>
+            row.certificateNumber.toLowerCase().includes(q) ||
+            row.qrToken?.toLowerCase().includes(q) ||
+            row.instrument?.serialNumber?.toLowerCase().includes(q)
+          }
+          pageSize={10}
+        />
+      )}
+
+      {/* TAB 3: INSTRUMENTS */}
+      {adminTab === 'instruments' && (
+        <DataTable
+          columns={instrumentColumns}
+          data={instruments}
+          keyExtractor={(row) => row.id}
+          title="Commercial Measuring Instruments Census"
+          subtitle="Statewide census of verified and registered measuring devices."
+          searchPlaceholder="Search serial number, model, manufacturer..."
+          searchFilter={(row, q) =>
+            row.serialNumber.toLowerCase().includes(q) ||
+            row.model.toLowerCase().includes(q) ||
+            row.manufacturer.toLowerCase().includes(q)
+          }
+          pageSize={10}
+        />
+      )}
+
+      {/* TAB 4: RULES */}
+      {adminTab === 'rules' && (
+        <DataTable
+          columns={ruleColumns}
+          data={rules}
+          keyExtractor={(row) => row.id}
+          title="Statutory Metrology Rules & Tolerances"
+          subtitle="Mathematical criteria and Maximum Permissible Error (MPE) thresholds applied during inspection."
+          pageSize={10}
+        />
+      )}
+
+      {/* TAB 5: AUDIT */}
+      {adminTab === 'audit' && (
+        <DataTable
+          columns={auditColumns}
+          data={auditRecords}
+          keyExtractor={(row) => row.id}
+          title="Regulatory Audit Trail & Traceability Ledger"
+          subtitle="Complete chronological audit records tracking officer inspections, rule modifications, and certificates."
+          searchPlaceholder="Search actor, action, reference..."
+          searchFilter={(row, q) =>
+            row.actor.toLowerCase().includes(q) ||
+            row.action.toLowerCase().includes(q) ||
+            row.ref.toLowerCase().includes(q)
+          }
+          pageSize={10}
+        />
+      )}
+
+      {/* Formal Revocation Modal */}
+      <Modal
+        isOpen={isRevokeModalOpen}
+        onClose={() => setIsRevokeModalOpen(false)}
+        title="Revoke Compliance Certificate"
+        subtitle="Statutory de-certification of measuring instrument"
+        maxWidth="md"
+      >
+        <form onSubmit={handleRevokeSubmit} className="space-y-4">
+          <div className="bg-rose-50 p-3 rounded-xs border border-rose-300 text-xs text-rose-900 leading-relaxed">
+            <strong className="block uppercase text-[11px] font-bold mb-1">
+              Warning: Regulatory Invalidation Notice
+            </strong>
+            Revoking certificate <span className="font-mono font-bold">{revokeCertNum}</span> will immediately render the instrument non-compliant for commercial trade. The public verification registry will reflect status REVOKED.
+          </div>
+
+          <div>
+            <label className="gov-label">
+              Certificate Reference Number <span className="text-rose-600">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={revokeCertNum}
+              onChange={(e) => setRevokeCertNum(e.target.value)}
+              className="gov-input font-mono"
+            />
+          </div>
+
+          <div>
+            <label className="gov-label">
+              Statutory Reason for Revocation <span className="text-rose-600">*</span>
+            </label>
+            <textarea
+              required
+              rows={3}
+              placeholder="e.g. Failure upon surprise field re-inspection; Broken security seal; Commercial fraud report."
+              value={revokeReason}
+              onChange={(e) => setRevokeReason(e.target.value)}
+              className="gov-input"
+            />
+          </div>
+
+          <div className="flex items-center justify-end space-x-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setIsRevokeModalOpen(false)}
+              className="gov-btn-secondary"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={revoking}
+              className="gov-btn-danger font-bold uppercase text-xs"
+            >
+              {revoking ? 'Executing Revocation...' : 'Confirm Revocation'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Certificate Preview Modal */}
+      {previewCert && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 p-3 sm:p-6 flex justify-center items-start">
+          <div className="relative w-full max-w-4xl my-2 sm:my-4">
+            <div className="print-hide absolute top-2 right-2 sm:top-3 sm:right-3 z-30">
+              <button
+                onClick={() => setPreviewCert(null)}
+                className="bg-white hover:bg-slate-100 text-slate-800 p-2 rounded-xs shadow-md border border-slate-300 transition"
+              >
+                ✕ Close Preview
+              </button>
+            </div>
+            <CertificateDocument
+              data={previewCert}
+              showToolbar={true}
+              onClose={() => setPreviewCert(null)}
+            />
           </div>
         </div>
       )}
