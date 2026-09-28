@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type StatusType =
   | 'VALID'
@@ -24,6 +25,7 @@ interface StatusBadgeProps {
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'sm', className = '' }) => {
+  const { t } = useTranslation();
   const norm = (status || '').toUpperCase().trim();
 
   let colorClasses = 'bg-slate-100 text-slate-800 border-slate-300';
@@ -74,7 +76,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, size = 'sm', c
       break;
   }
 
-  const label = norm.replace(/_/g, ' ');
+  const label = t(`status.${norm}`, { defaultValue: norm.replace(/_/g, ' ') });
   const sizeClasses = size === 'sm' ? 'px-2 py-0.5 text-[10.5px]' : 'px-2.5 py-1 text-xs';
 
   return (

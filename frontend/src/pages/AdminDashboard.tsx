@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { mockStore } from '../services/mockData';
+import { useTranslation } from 'react-i18next';
+import { formatDateLocale } from '../i18n';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/common/PageHeader';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -10,6 +12,7 @@ import { Modal } from '../components/common/Modal';
 import { CertificateDocument, CertificateData } from '../components/certificate/CertificateDocument';
 
 export const AdminDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [instruments, setInstruments] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [certificates, setCertificates] = useState<any[]>([]);
@@ -144,7 +147,7 @@ export const AdminDashboard: React.FC = () => {
   // Certificate Table Columns
   const certColumns: ColumnDef<any>[] = [
     {
-      header: 'Certificate Reference',
+      header: t('owner.colCertRef'),
       accessor: (row) => (
         <div>
           <span className="font-mono font-bold text-gov-navy text-xs block">{row.certificateNumber}</span>
@@ -155,7 +158,7 @@ export const AdminDashboard: React.FC = () => {
       sortValue: (r) => r.certificateNumber,
     },
     {
-      header: 'Equipment',
+      header: t('owner.colEqInfo'),
       accessor: (row) => (
         <div>
           <strong className="block text-slate-800">{row.instrument?.model}</strong>
@@ -164,30 +167,30 @@ export const AdminDashboard: React.FC = () => {
       ),
     },
     {
-      header: 'Custodian',
+      header: t('officer.colCustodian'),
       accessor: (row) => <span className="text-slate-700">{row.applicantName || 'Sovereign Agro Logistics'}</span>,
     },
     {
-      header: 'Validity Span',
+      header: t('owner.colValidity'),
       accessor: (row) => (
         <div className="text-[11px]">
           <span className="text-slate-500 block">
-            Issued: {new Date(row.issueDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+            {t('owner.issuedOn')}: {formatDateLocale(row.issueDate)}
           </span>
           <span className="font-semibold text-slate-800">
-            Expires: {new Date(row.expiryDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+            {t('owner.expiresOn')}: {formatDateLocale(row.expiryDate)}
           </span>
         </div>
       ),
     },
     {
-      header: 'Status',
+      header: t('owner.colStatus'),
       accessor: (row) => <StatusBadge status={row.status} />,
       sortable: true,
       sortValue: (r) => r.status,
     },
     {
-      header: 'Administrative Action',
+      header: t('admin.colAction'),
       accessor: (row) => (
         <div className="flex items-center space-x-1.5">
           <button
@@ -195,7 +198,7 @@ export const AdminDashboard: React.FC = () => {
             type="button"
             className="gov-btn-secondary py-0.5 px-2 text-[10.5px]"
           >
-            Preview
+            {t('common.preview')}
           </button>
           {row.status === 'VALID' ? (
             <button
@@ -203,10 +206,10 @@ export const AdminDashboard: React.FC = () => {
               type="button"
               className="gov-btn-danger py-0.5 px-2 text-[10.5px]"
             >
-              Revoke
+              {t('admin.revokeBtn')}
             </button>
           ) : (
-            <span className="text-[10px] text-rose-700 font-semibold px-1">Revoked</span>
+            <span className="text-[10px] text-rose-700 font-semibold px-1">{t('admin.revokedBadge')}</span>
           )}
         </div>
       ),
@@ -216,17 +219,17 @@ export const AdminDashboard: React.FC = () => {
   // Instrument Table Columns
   const instrumentColumns: ColumnDef<any>[] = [
     {
-      header: 'Serial Number',
+      header: t('owner.colSerial'),
       accessor: (row) => <span className="font-mono font-bold text-gov-navy">{row.serialNumber}</span>,
       sortable: true,
       sortValue: (r) => r.serialNumber,
     },
     {
-      header: 'Category',
+      header: t('owner.colType'),
       accessor: (row) => <span>{row.type?.replace(/_/g, ' ')}</span>,
     },
     {
-      header: 'Manufacturer & Model',
+      header: t('owner.colModel'),
       accessor: (row) => (
         <div>
           <strong className="block text-slate-800">{row.model}</strong>
@@ -235,11 +238,11 @@ export const AdminDashboard: React.FC = () => {
       ),
     },
     {
-      header: 'Capacity',
+      header: t('owner.colCapacity'),
       accessor: (row) => <span>{row.ratedCapacity || 'Standard'}</span>,
     },
     {
-      header: 'Status',
+      header: t('owner.colStatus'),
       accessor: (row) => <StatusBadge status={row.status} />,
       sortable: true,
       sortValue: (r) => r.status,
@@ -249,19 +252,19 @@ export const AdminDashboard: React.FC = () => {
   // Rules Table Columns
   const ruleColumns: ColumnDef<any>[] = [
     {
-      header: 'Rule Code',
+      header: t('admin.colRuleCode'),
       accessor: (row) => <span className="font-mono font-bold text-gov-navy">{row.ruleCode}</span>,
     },
     {
-      header: 'Version',
+      header: t('admin.colVersion'),
       accessor: (row) => <span className="font-mono font-bold text-emerald-800">v{row.ruleVersion}</span>,
     },
     {
-      header: 'Instrument Type',
+      header: t('admin.colInstrumentType'),
       accessor: (row) => <span>{row.instrumentType?.replace(/_/g, ' ')}</span>,
     },
     {
-      header: 'Tolerance Specification',
+      header: t('admin.colToleranceSpec'),
       accessor: (row) => (
         <span className="font-mono text-[11px] text-slate-700">
           Absolute: ±{row.toleranceConfig?.absoluteTolerance || '0.0100'} | Relative: {row.toleranceConfig?.relativeTolerancePercent || '0.05'}%
@@ -269,7 +272,7 @@ export const AdminDashboard: React.FC = () => {
       ),
     },
     {
-      header: 'Description',
+      header: t('admin.colDescription'),
       accessor: (row) => <span className="text-slate-600 text-xs">{row.description}</span>,
     },
   ];
@@ -277,7 +280,7 @@ export const AdminDashboard: React.FC = () => {
   // Audit Table Columns
   const auditColumns: ColumnDef<any>[] = [
     {
-      header: 'Audit ID & Time',
+      header: t('admin.colAuditId'),
       accessor: (row) => (
         <div>
           <span className="font-mono font-bold text-gov-navy text-[11px] block">{row.id}</span>
@@ -288,15 +291,15 @@ export const AdminDashboard: React.FC = () => {
       ),
     },
     {
-      header: 'Actor',
+      header: t('admin.colActor'),
       accessor: (row) => <span className="font-mono text-slate-700 text-xs">{row.actor}</span>,
     },
     {
-      header: 'Action Executed',
+      header: t('admin.colActionExec'),
       accessor: (row) => <span className="font-semibold text-slate-900 text-xs">{row.action}</span>,
     },
     {
-      header: 'Target Entity',
+      header: t('admin.colTargetEntity'),
       accessor: (row) => (
         <span className="font-mono text-slate-600 text-[11px]">
           {row.entity} ({row.ref})
@@ -304,11 +307,11 @@ export const AdminDashboard: React.FC = () => {
       ),
     },
     {
-      header: 'Result',
+      header: t('admin.colResult'),
       accessor: (row) => <StatusBadge status={row.result} />,
     },
     {
-      header: 'Audit Telemetry Details',
+      header: t('admin.colAuditTelemetry'),
       accessor: (row) => <span className="text-slate-600 text-[11px]">{row.details}</span>,
     },
   ];
@@ -317,12 +320,12 @@ export const AdminDashboard: React.FC = () => {
     <div className="space-y-5">
       {/* Page Header */}
       <PageHeader
-        title="Directorate Administrative Console"
-        description="Central regulatory oversight, statutory tolerance rules engine, nationwide certificate revocation registry, and system audit telemetry."
-        breadcrumbs={[{ label: 'Administrative Portal' }, { label: 'Directorate Oversight' }]}
+        title={t('admin.pageTitle')}
+        description={t('admin.pageDesc')}
+        breadcrumbs={[{ label: t('admin.adminPortal') }, { label: t('admin.directorateOversight') }]}
         badge={
           <span className="text-[10px] font-semibold font-mono bg-emerald-100 text-emerald-900 px-2 py-0.5 border border-emerald-300 rounded-xs uppercase">
-            Legal Metrology Root Authority
+            {t('admin.rootAuthority')}
           </span>
         }
         actions={
@@ -333,7 +336,7 @@ export const AdminDashboard: React.FC = () => {
               className="gov-btn-secondary text-xs"
               title="Reset mock database to initial seed"
             >
-              🔄 Reset Demo Database
+              {t('admin.resetDemoBtn')}
             </button>
           </div>
         }
@@ -354,38 +357,38 @@ export const AdminDashboard: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
         <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
           <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-            Registered Instruments
+            {t('admin.regInstruments')}
           </span>
           <div className="text-xl font-bold text-gov-navy mt-1 font-mono">{instruments.length}</div>
-          <span className="text-[10.5px] text-slate-500 block mt-0.5">Commercial equipment census</span>
+          <span className="text-[10.5px] text-slate-500 block mt-0.5">{t('admin.regInstrumentsDesc')}</span>
         </div>
 
         <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
           <span className="block text-[10px] font-bold text-gov-blue uppercase tracking-wider">
-            Active Applications
+            {t('admin.activeApps')}
           </span>
           <div className="text-xl font-bold text-gov-blue mt-1 font-mono">{applications.length}</div>
-          <span className="text-[10.5px] text-slate-500 block mt-0.5">Verification requests lodged</span>
+          <span className="text-[10.5px] text-slate-500 block mt-0.5">{t('admin.activeAppsDesc')}</span>
         </div>
 
         <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
           <span className="block text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
-            Valid Compliance Certificates
+            {t('admin.validCerts')}
           </span>
           <div className="text-xl font-bold text-emerald-900 mt-1 font-mono">
             {certificates.filter((c) => c.status === 'VALID').length}
           </div>
-          <span className="text-[10.5px] text-slate-500 block mt-0.5">Legally authorized for trade</span>
+          <span className="text-[10.5px] text-slate-500 block mt-0.5">{t('admin.validCertsDesc')}</span>
         </div>
 
         <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
           <span className="block text-[10px] font-bold text-rose-800 uppercase tracking-wider">
-            Revoked Certificates
+            {t('admin.revokedCerts')}
           </span>
           <div className="text-xl font-bold text-rose-900 mt-1 font-mono">
             {certificates.filter((c) => c.status === 'REVOKED').length}
           </div>
-          <span className="text-[10.5px] text-slate-500 block mt-0.5">De-certified / Voided records</span>
+          <span className="text-[10.5px] text-slate-500 block mt-0.5">{t('admin.revokedCertsDesc')}</span>
         </div>
       </div>
 
@@ -401,7 +404,7 @@ export const AdminDashboard: React.FC = () => {
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
           >
-            Directorate Overview
+            {t('admin.tabOverview')}
           </button>
 
           <button
@@ -413,7 +416,7 @@ export const AdminDashboard: React.FC = () => {
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
           >
-            Certificates & Revocation ({certificates.length})
+            {t('admin.tabCertificates')} ({certificates.length})
           </button>
 
           <button
@@ -425,7 +428,7 @@ export const AdminDashboard: React.FC = () => {
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
           >
-            Instruments Census ({instruments.length})
+            {t('admin.tabInstruments')} ({instruments.length})
           </button>
 
           <button
@@ -437,7 +440,7 @@ export const AdminDashboard: React.FC = () => {
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
           >
-            Statutory Rules ({rules.length})
+            {t('admin.tabRules')} ({rules.length})
           </button>
 
           <button
@@ -449,7 +452,7 @@ export const AdminDashboard: React.FC = () => {
                 : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
             }`}
           >
-            Audit Telemetry ({auditRecords.length})
+            {t('admin.tabAudit')} ({auditRecords.length})
           </button>
         </nav>
       </div>
@@ -461,26 +464,26 @@ export const AdminDashboard: React.FC = () => {
             {/* System Status Panel */}
             <div className="bg-white border border-slate-300 p-4 rounded-xs shadow-xs space-y-3">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-slate-200 pb-2">
-                Operational Synchronization & Health
+                {t('admin.syncHealthTitle')}
               </h2>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                  <span className="text-slate-600">Verification Registry Status</span>
+                  <span className="text-slate-600">{t('admin.registryStatus')}</span>
                   <span className="font-semibold text-emerald-800 flex items-center space-x-1">
                     <span>●</span>
-                    <span>ONLINE (Local Node Verified)</span>
+                    <span>{t('admin.registryOnline')}</span>
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                  <span className="text-slate-600">Tolerance Evaluation Engine</span>
-                  <span className="font-mono text-slate-800">Deterministic MPE Rule Engine v1.0</span>
+                  <span className="text-slate-600">{t('admin.toleranceEngine')}</span>
+                  <span className="font-mono text-slate-800">{t('admin.ruleEngineDesc')}</span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                  <span className="text-slate-600">Offline Queue Cache</span>
-                  <span className="font-mono text-slate-800">localStorage / In-Memory Mock Store</span>
+                  <span className="text-slate-600">{t('admin.offlineCache')}</span>
+                  <span className="font-mono text-slate-800">{t('admin.cacheDesc')}</span>
                 </div>
                 <div className="flex justify-between items-center py-1">
-                  <span className="text-slate-600">Last System Sync</span>
+                  <span className="text-slate-600">{t('admin.lastSync')}</span>
                   <span className="font-mono text-slate-800">{new Date().toLocaleTimeString('en-IN')}</span>
                 </div>
               </div>
@@ -489,10 +492,10 @@ export const AdminDashboard: React.FC = () => {
             {/* Quick Revocation Tool */}
             <div className="bg-white border border-slate-300 p-4 rounded-xs shadow-xs space-y-3">
               <h2 className="text-xs font-bold uppercase tracking-wider text-rose-800 border-b border-slate-200 pb-2">
-                Statutory Certificate Revocation Console
+                {t('admin.revocationToolTitle')}
               </h2>
               <p className="text-xs text-slate-600">
-                Immediately revoke a certificate by entering its official reference number and statutory justification.
+                {t('admin.revocationToolDesc')}
               </p>
               <div className="flex items-center space-x-2 pt-2">
                 <input
@@ -508,7 +511,7 @@ export const AdminDashboard: React.FC = () => {
                   disabled={!revokeCertNum.trim()}
                   className="gov-btn-danger text-xs font-bold uppercase whitespace-nowrap"
                 >
-                  Initiate Revocation
+                  {t('admin.initiateRevocation')}
                 </button>
               </div>
             </div>
@@ -519,8 +522,8 @@ export const AdminDashboard: React.FC = () => {
             columns={auditColumns}
             data={auditRecords}
             keyExtractor={(row) => row.id}
-            title="Recent Directorate Audit Activity"
-            subtitle="Immutable chronological telemetry of verification actions and tolerance evaluations."
+            title={t('admin.recentAuditTitle')}
+            subtitle={t('admin.recentAuditSubtitle')}
             pageSize={5}
           />
         </div>
@@ -532,9 +535,9 @@ export const AdminDashboard: React.FC = () => {
           columns={certColumns}
           data={certificates}
           keyExtractor={(row) => row.id}
-          title="National Compliance Certificates Registry"
-          subtitle="Directory of issued certificates with cryptographic tokens and revocation authority."
-          searchPlaceholder="Search certificate number, token, serial number..."
+          title={t('admin.nationalCertTitle')}
+          subtitle={t('admin.nationalCertSubtitle')}
+          searchPlaceholder={t('admin.searchPlaceholderCert')}
           searchFilter={(row, q) =>
             row.certificateNumber.toLowerCase().includes(q) ||
             row.qrToken?.toLowerCase().includes(q) ||
@@ -550,9 +553,9 @@ export const AdminDashboard: React.FC = () => {
           columns={instrumentColumns}
           data={instruments}
           keyExtractor={(row) => row.id}
-          title="Commercial Measuring Instruments Census"
-          subtitle="Statewide census of verified and registered measuring devices."
-          searchPlaceholder="Search serial number, model, manufacturer..."
+          title={t('admin.censusTitle')}
+          subtitle={t('admin.censusSubtitle')}
+          searchPlaceholder={t('owner.searchPlaceholderInst')}
           searchFilter={(row, q) =>
             row.serialNumber.toLowerCase().includes(q) ||
             row.model.toLowerCase().includes(q) ||
@@ -568,8 +571,8 @@ export const AdminDashboard: React.FC = () => {
           columns={ruleColumns}
           data={rules}
           keyExtractor={(row) => row.id}
-          title="Statutory Metrology Rules & Tolerances"
-          subtitle="Mathematical criteria and Maximum Permissible Error (MPE) thresholds applied during inspection."
+          title={t('admin.rulesTitle')}
+          subtitle={t('admin.rulesSubtitle')}
           pageSize={10}
         />
       )}
@@ -580,9 +583,9 @@ export const AdminDashboard: React.FC = () => {
           columns={auditColumns}
           data={auditRecords}
           keyExtractor={(row) => row.id}
-          title="Regulatory Audit Trail & Traceability Ledger"
-          subtitle="Complete chronological audit records tracking officer inspections, rule modifications, and certificates."
-          searchPlaceholder="Search actor, action, reference..."
+          title={t('admin.auditTitle')}
+          subtitle={t('admin.auditSubtitle')}
+          searchPlaceholder={t('admin.searchPlaceholderAudit')}
           searchFilter={(row, q) =>
             row.actor.toLowerCase().includes(q) ||
             row.action.toLowerCase().includes(q) ||
@@ -596,21 +599,21 @@ export const AdminDashboard: React.FC = () => {
       <Modal
         isOpen={isRevokeModalOpen}
         onClose={() => setIsRevokeModalOpen(false)}
-        title="Revoke Compliance Certificate"
-        subtitle="Statutory de-certification of measuring instrument"
+        title={t('admin.revokeModalTitle')}
+        subtitle={t('admin.revokeModalSubtitle')}
         maxWidth="md"
       >
         <form onSubmit={handleRevokeSubmit} className="space-y-4">
           <div className="bg-rose-50 p-3 rounded-xs border border-rose-300 text-xs text-rose-900 leading-relaxed">
             <strong className="block uppercase text-[11px] font-bold mb-1">
-              Warning: Regulatory Invalidation Notice
+              {t('admin.revokeWarning')}
             </strong>
-            Revoking certificate <span className="font-mono font-bold">{revokeCertNum}</span> will immediately render the instrument non-compliant for commercial trade. The public verification registry will reflect status REVOKED.
+            {t('admin.revokeWarningText', { num: revokeCertNum })}
           </div>
 
           <div>
             <label className="gov-label">
-              Certificate Reference Number <span className="text-rose-600">*</span>
+              {t('admin.certRefLabel')} <span className="text-rose-600">*</span>
             </label>
             <input
               type="text"
@@ -623,12 +626,12 @@ export const AdminDashboard: React.FC = () => {
 
           <div>
             <label className="gov-label">
-              Statutory Reason for Revocation <span className="text-rose-600">*</span>
+              {t('admin.revokeReasonLabel')} <span className="text-rose-600">*</span>
             </label>
             <textarea
               required
               rows={3}
-              placeholder="e.g. Failure upon surprise field re-inspection; Broken security seal; Commercial fraud report."
+              placeholder={t('admin.revokeReasonPlaceholder')}
               value={revokeReason}
               onChange={(e) => setRevokeReason(e.target.value)}
               className="gov-input"
@@ -641,14 +644,14 @@ export const AdminDashboard: React.FC = () => {
               onClick={() => setIsRevokeModalOpen(false)}
               className="gov-btn-secondary"
             >
-              Cancel
+              {t('common.cancel')}
             </button>
             <button
               type="submit"
               disabled={revoking}
               className="gov-btn-danger font-bold uppercase text-xs"
             >
-              {revoking ? 'Executing Revocation...' : 'Confirm Revocation'}
+              {revoking ? t('admin.executingRevoke') : t('admin.confirmRevoke')}
             </button>
           </div>
         </form>
@@ -663,7 +666,7 @@ export const AdminDashboard: React.FC = () => {
                 onClick={() => setPreviewCert(null)}
                 className="bg-white hover:bg-slate-100 text-slate-800 p-2 rounded-xs shadow-md border border-slate-300 transition"
               >
-                ✕ Close Preview
+                {t('admin.closePreview')}
               </button>
             </div>
             <CertificateDocument

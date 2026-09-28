@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { formatDateLocale } from '../i18n';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/common/PageHeader';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -15,6 +17,7 @@ interface ReadingRow {
 }
 
 export const OfficerQueuePage: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [queue, setQueue] = useState<any[]>([]);
   const [rules, setRules] = useState<any[]>([]);
@@ -143,13 +146,13 @@ export const OfficerQueuePage: React.FC = () => {
   // Queue Table Columns
   const queueColumns: ColumnDef<any>[] = [
     {
-      header: 'Application Ref',
+      header: t('owner.colAppRef'),
       accessor: (row) => <span className="font-mono font-bold text-gov-navy text-xs">{row.id}</span>,
       sortable: true,
       sortValue: (r) => r.id,
     },
     {
-      header: 'Measuring Instrument',
+      header: t('owner.colEqInfo'),
       accessor: (row) => (
         <div>
           <strong className="block text-slate-900">{row.instrument?.model}</strong>
@@ -160,7 +163,7 @@ export const OfficerQueuePage: React.FC = () => {
       ),
     },
     {
-      header: 'Category',
+      header: t('owner.colType'),
       accessor: (row) => (
         <span className="text-slate-700 text-xs">
           {row.instrument?.type?.replace(/_/g, ' ')}
@@ -170,7 +173,7 @@ export const OfficerQueuePage: React.FC = () => {
       sortValue: (r) => r.instrument?.type,
     },
     {
-      header: 'Custodian / Business',
+      header: t('officer.colCustodian'),
       accessor: (row) => (
         <span className="text-slate-800 font-medium text-xs">
           {row.applicant?.fullName || 'Sovereign Agro Logistics Ltd'}
@@ -178,34 +181,30 @@ export const OfficerQueuePage: React.FC = () => {
       ),
     },
     {
-      header: 'Filing Date',
+      header: t('officer.colFilingDate'),
       accessor: (row) => (
         <span className="text-slate-600 text-xs">
-          {new Date(row.createdAt).toLocaleDateString('en-IN', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          })}
+          {formatDateLocale(row.createdAt)}
         </span>
       ),
       sortable: true,
       sortValue: (r) => r.createdAt,
     },
     {
-      header: 'Current Status',
+      header: t('owner.colAppStatus'),
       accessor: (row) => <StatusBadge status={row.status} />,
       sortable: true,
       sortValue: (r) => r.status,
     },
     {
-      header: 'Action',
+      header: t('owner.colAction'),
       accessor: (row) => (
         <button
           onClick={() => handleStartInspection(row)}
           type="button"
           className="gov-btn-primary text-xs py-1 px-3 whitespace-nowrap"
         >
-          Inspect Equipment →
+          {t('officer.inspectEquipment')}
         </button>
       ),
     },
@@ -215,12 +214,12 @@ export const OfficerQueuePage: React.FC = () => {
     <div className="space-y-5">
       {/* Page Header */}
       <PageHeader
-        title="Field Metrology Verification Queue"
-        description="Official operational workbench for authorized legal metrology officers. Perform tolerance testing, evaluate Maximum Permissible Error (MPE) conformance, and issue certificates."
-        breadcrumbs={[{ label: 'Officer Portal' }, { label: 'Field Verification Queue' }]}
+        title={t('officer.pageTitle')}
+        description={t('officer.pageDesc')}
+        breadcrumbs={[{ label: t('officer.officerPortal') }, { label: t('officer.fieldVerificationQueue') }]}
         badge={
           <span className="text-[10px] font-semibold font-mono bg-blue-100 text-blue-900 px-2 py-0.5 border border-blue-300 rounded-xs uppercase">
-            Authorized Enforcement Wing
+            {t('officer.authorizedWing')}
           </span>
         }
         actions={
@@ -233,7 +232,7 @@ export const OfficerQueuePage: React.FC = () => {
               type="button"
               className="gov-btn-secondary text-xs"
             >
-              ← Return to Queue List
+              {t('officer.returnToQueue')}
             </button>
           ) : undefined
         }
@@ -254,40 +253,40 @@ export const OfficerQueuePage: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
         <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
           <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-            Pending in Queue
+            {t('officer.pendingQueue')}
           </span>
           <div className="text-xl font-bold text-amber-900 mt-1 font-mono">
             {queue.filter((q) => q.status === 'SUBMITTED' || q.status === 'PENDING').length}
           </div>
-          <span className="text-[10.5px] text-slate-500 mt-0.5 block">Scheduled for field testing</span>
+          <span className="text-[10.5px] text-slate-500 mt-0.5 block">{t('officer.pendingDesc')}</span>
         </div>
 
         <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
           <span className="block text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
-            Completed Inspections
+            {t('officer.completedInspections')}
           </span>
           <div className="text-xl font-bold text-emerald-900 mt-1 font-mono">
             {queue.filter((q) => q.status === 'CERTIFICATE_ISSUED').length}
           </div>
-          <span className="text-[10.5px] text-slate-500 mt-0.5 block">Certificates stamped & issued</span>
+          <span className="text-[10.5px] text-slate-500 mt-0.5 block">{t('officer.completedDesc')}</span>
         </div>
 
         <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
           <span className="block text-[10px] font-bold text-gov-navy uppercase tracking-wider">
-            Active Tolerance Rules
+            {t('officer.activeRules')}
           </span>
           <div className="text-xl font-bold text-gov-navy mt-1 font-mono">{rules.length}</div>
-          <span className="text-[10.5px] text-slate-500 mt-0.5 block">Statutory models (v1.0)</span>
+          <span className="text-[10.5px] text-slate-500 mt-0.5 block">{t('officer.activeRulesDesc')}</span>
         </div>
 
         <div className="bg-white border border-slate-300 p-3 rounded-xs shadow-xs">
           <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-            Inspecting Officer
+            {t('officer.inspectingOfficer')}
           </span>
           <div className="text-xs font-bold text-slate-900 mt-1 truncate">
             {user?.fullName || 'Inspector Rajesh Kumar'}
           </div>
-          <span className="text-[10.5px] text-slate-500 block">Zone-04 Metrological Laboratory</span>
+          <span className="text-[10.5px] text-slate-500 block">{t('officer.officerLab')}</span>
         </div>
       </div>
 
@@ -297,9 +296,9 @@ export const OfficerQueuePage: React.FC = () => {
           columns={queueColumns}
           data={queue}
           keyExtractor={(row) => row.id}
-          title="Assigned Verification Applications"
-          subtitle="List of commercial instruments submitted for legal metrology inspection."
-          searchPlaceholder="Search application ref, serial number, model..."
+          title={t('officer.assignedQueueTitle')}
+          subtitle={t('officer.assignedQueueSubtitle')}
+          searchPlaceholder={t('officer.searchPlaceholder')}
           searchFilter={(row, q) =>
             row.id.toLowerCase().includes(q) ||
             row.instrument?.serialNumber?.toLowerCase().includes(q) ||
@@ -307,8 +306,8 @@ export const OfficerQueuePage: React.FC = () => {
             row.applicant?.fullName?.toLowerCase().includes(q)
           }
           loading={loading}
-          emptyTitle="Verification queue is clear"
-          emptyDescription="There are currently no pending verification applications assigned to this queue."
+          emptyTitle={t('officer.emptyTitle')}
+          emptyDescription={t('officer.emptyDesc')}
           pageSize={10}
         />
       )}
@@ -322,7 +321,7 @@ export const OfficerQueuePage: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
                 <div>
                   <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">
-                    Inspection Outcome Recorded
+                    {t('officer.outcomeRecorded')}
                   </span>
                   <div className="flex items-center space-x-2 mt-0.5">
                     <h2 className="text-lg font-bold text-gov-navy">
@@ -339,13 +338,13 @@ export const OfficerQueuePage: React.FC = () => {
                       type="button"
                       className="gov-btn-secondary text-xs"
                     >
-                      Preview Certificate
+                      {t('officer.previewCert')}
                     </button>
                     <Link
                       to={`/verify/${inspectionResult.certificate.qrToken}`}
                       className="gov-btn-primary text-xs"
                     >
-                      Public Registry ↗
+                      {t('officer.publicRegistry')}
                     </Link>
                   </div>
                 )}
@@ -371,10 +370,10 @@ export const OfficerQueuePage: React.FC = () => {
             <div className="border-b border-slate-300 pb-3 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-500">
-                  Form LM-02 • Verification Inspection Protocol
+                  {t('officer.workbenchTitle')}
                 </span>
                 <h2 className="text-base font-bold text-gov-navy">
-                  Active Inspection Workbench — {selectedApp.instrument?.model}
+                  {t('officer.workbenchActive')} — {selectedApp.instrument?.model}
                 </h2>
               </div>
               <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded-xs border border-slate-300">
@@ -386,22 +385,22 @@ export const OfficerQueuePage: React.FC = () => {
               {/* Part 1: Equipment & Rule Information Matrix */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-slate-50 p-3 rounded-xs border border-slate-200">
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-500 uppercase">Equipment Category</span>
+                  <span className="block text-[10px] font-bold text-slate-500 uppercase">{t('officer.part1Category')}</span>
                   <strong className="text-slate-900">{selectedApp.instrument?.type?.replace(/_/g, ' ')}</strong>
                 </div>
 
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-500 uppercase">Serial Number</span>
+                  <span className="block text-[10px] font-bold text-slate-500 uppercase">{t('officer.part1Serial')}</span>
                   <strong className="font-mono text-gov-navy text-xs">{selectedApp.instrument?.serialNumber}</strong>
                 </div>
 
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-500 uppercase">Manufacturer</span>
+                  <span className="block text-[10px] font-bold text-slate-500 uppercase">{t('officer.part1Manufacturer')}</span>
                   <span className="text-slate-800">{selectedApp.instrument?.manufacturer}</span>
                 </div>
 
                 <div>
-                  <span className="block text-[10px] font-bold text-slate-500 uppercase">Custodian Business</span>
+                  <span className="block text-[10px] font-bold text-slate-500 uppercase">{t('officer.part1Custodian')}</span>
                   <span className="text-slate-800">{selectedApp.applicant?.fullName || 'Sovereign Agro Logistics Ltd'}</span>
                 </div>
               </div>
@@ -410,10 +409,10 @@ export const OfficerQueuePage: React.FC = () => {
               <div className="border-t border-slate-200 pt-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                   <label htmlFor="statutory-rule" className="gov-label mb-0">
-                    Statutory Metrology Rule Criteria <span className="text-rose-600">*</span>
+                    {t('officer.ruleCriteria')} <span className="text-rose-600">*</span>
                   </label>
                   <span className="text-[11px] text-slate-500 font-mono">
-                    Absolute Tolerance: ±{absoluteTolerance} | Standard MPE: 0.05%
+                    {t('officer.toleranceSpecs', { abs: absoluteTolerance, pct: '0.05' })}
                   </span>
                 </div>
 
@@ -435,10 +434,10 @@ export const OfficerQueuePage: React.FC = () => {
               <div className="border-t border-slate-200 pt-3">
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-                    Multi-Point Test Load Calibration Record
+                    {t('officer.testLoadRecord')}
                   </h3>
                   <span className="text-[11px] text-slate-500">
-                    Enter physical test readings observed using certified standard weights.
+                    {t('officer.testLoadDesc')}
                   </span>
                 </div>
 
@@ -446,12 +445,12 @@ export const OfficerQueuePage: React.FC = () => {
                   <table className="gov-table">
                     <thead>
                       <tr>
-                        <th>Test Point Description</th>
-                        <th>Reference Mass (kg)</th>
-                        <th>Observed Reading (kg)</th>
-                        <th>Absolute Deviation</th>
-                        <th>Relative Error (%)</th>
-                        <th className="text-center">Permissible Status</th>
+                        <th>{t('officer.colPoint')}</th>
+                        <th>{t('officer.colRefMass')}</th>
+                        <th>{t('officer.colObsReading')}</th>
+                        <th>{t('officer.colAbsError')}</th>
+                        <th>{t('officer.colRelError')}</th>
+                        <th className="text-center">{t('officer.colPermissible')}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -497,14 +496,14 @@ export const OfficerQueuePage: React.FC = () => {
               <div className="border-t border-slate-200 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="officer-notes" className="gov-label">
-                    Inspecting Officer Notes / Laboratory Observations
+                    {t('officer.officerNotes')}
                   </label>
                   <textarea
                     id="officer-notes"
                     rows={3}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="e.g. Verified using calibrated standard weights. Environmental temperature 24°C. Seal intact."
+                    placeholder={t('officer.notesPlaceholder')}
                     className="gov-input text-xs"
                   />
                 </div>
@@ -512,7 +511,7 @@ export const OfficerQueuePage: React.FC = () => {
                 <div className="bg-slate-50 border border-slate-300 p-3 rounded-xs flex flex-col justify-between">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
-                      Automated Tolerance Assessment
+                      {t('officer.mpeAssessment')}
                     </span>
                     <div className="mt-1 flex items-center space-x-2">
                       <span
@@ -520,18 +519,16 @@ export const OfficerQueuePage: React.FC = () => {
                           allPassed ? 'text-emerald-800' : 'text-rose-700'
                         }`}
                       >
-                        {allPassed ? 'OVERALL: PASSED (MPE SATISFIED)' : 'OVERALL: FAILED (OUT OF TOLERANCE)'}
+                        {allPassed ? t('officer.overallPassed') : t('officer.overallFailed')}
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-600 mt-1">
-                      {allPassed
-                        ? 'All test points fall within statutory limits under Rule v1.0. A verification certificate will be generated upon submission.'
-                        : 'One or more test points exceed maximum permissible error. Instrument cannot be approved.'}
+                      {allPassed ? t('officer.allPassedDesc') : t('officer.anyFailedDesc')}
                     </p>
                   </div>
 
                   <div className="mt-2 text-[10px] text-slate-500 font-mono">
-                    Signed by: {user?.fullName || 'Inspector Rajesh Kumar'} (Zone-04)
+                    {t('officer.signedBy', { name: user?.fullName || 'Inspector Rajesh Kumar' })}
                   </div>
                 </div>
               </div>
@@ -543,7 +540,7 @@ export const OfficerQueuePage: React.FC = () => {
                   onClick={() => setSelectedApp(null)}
                   className="gov-btn-secondary"
                 >
-                  Cancel & Exit Workbench
+                  {t('officer.cancelWorkbench')}
                 </button>
 
                 <button
@@ -554,10 +551,10 @@ export const OfficerQueuePage: React.FC = () => {
                   }`}
                 >
                   {submitting
-                    ? 'Submitting Verification...'
+                    ? t('officer.submittingVerification')
                     : allPassed
-                    ? 'Complete Verification & Issue Certificate'
-                    : 'Record Verification Rejection (Failed)'}
+                    ? t('officer.completeVerification')
+                    : t('officer.recordRejection')}
                 </button>
               </div>
             </form>
@@ -574,7 +571,7 @@ export const OfficerQueuePage: React.FC = () => {
                 onClick={() => setPreviewCert(null)}
                 className="bg-white hover:bg-slate-100 text-slate-800 p-2 rounded-xs shadow-md border border-slate-300 transition"
               >
-                ✕ Close Preview
+                {t('officer.closePreview')}
               </button>
             </div>
             <CertificateDocument

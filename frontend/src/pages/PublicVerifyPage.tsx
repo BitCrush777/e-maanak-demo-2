@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { api } from '../services/api';
 import { PageHeader } from '../components/common/PageHeader';
 import { Alert } from '../components/common/Alert';
 import { CertificateDocument, CertificateData } from '../components/certificate/CertificateDocument';
 
 export const PublicVerifyPage: React.FC = () => {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState(token || 'demo-qr-token-1');
@@ -65,12 +67,12 @@ export const PublicVerifyPage: React.FC = () => {
       {/* Page Header (Hidden in Print) */}
       <div className="print-hide">
         <PageHeader
-          title="Legal Metrology Public Verification Portal"
-          description="Public statutory registry lookup for measuring instruments. Verify equipment calibration status, permissible tolerance audit, and cryptographic integrity."
-          breadcrumbs={[{ label: 'Public Services' }, { label: 'Certificate Verification' }]}
+          title={t('verify.pageTitle')}
+          description={t('verify.pageDesc')}
+          breadcrumbs={[{ label: t('nav.publicVerify') }, { label: t('common.verifyCert') }]}
           badge={
             <span className="text-[10px] font-mono font-bold bg-slate-200 text-slate-800 px-2 py-0.5 border border-slate-300 rounded-xs uppercase">
-              SIH-2026 Registry Node
+              {t('verify.registryNode')}
             </span>
           }
         />
@@ -80,10 +82,10 @@ export const PublicVerifyPage: React.FC = () => {
       <div className="print-hide bg-white p-4 rounded-xs border border-slate-300 shadow-xs">
         <div className="border-b border-slate-200 pb-2 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <h2 className="text-xs font-bold text-gov-navy uppercase tracking-wide">
-            Statutory Certificate Search
+            {t('verify.searchTitle')}
           </h2>
           <span className="text-[10.5px] text-slate-500 font-mono">
-            Direct token or certificate number lookup
+            {t('verify.searchSubtitle')}
           </span>
         </div>
 
@@ -93,7 +95,7 @@ export const PublicVerifyPage: React.FC = () => {
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Enter Certificate Number (e.g. CERT-2026-INSP-9981) or QR Token (e.g. demo-qr-token-1)..."
+              placeholder={t('verify.searchPlaceholder')}
               className="gov-input font-mono text-xs py-2"
             />
           </div>
@@ -101,12 +103,12 @@ export const PublicVerifyPage: React.FC = () => {
             type="submit"
             className="gov-btn-primary font-bold uppercase text-xs py-2 px-5"
           >
-            Verify Certificate
+            {t('verify.verifyButton')}
           </button>
         </form>
 
         <div className="mt-2.5 text-[11px] text-slate-500 flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-slate-700">Test Demonstration Tokens:</span>
+          <span className="font-semibold text-slate-700">{t('verify.demoTokensLabel')}</span>
           <button
             type="button"
             onClick={() => navigate('/verify/demo-qr-token-1')}
@@ -129,10 +131,10 @@ export const PublicVerifyPage: React.FC = () => {
         <div className="p-12 text-center bg-white rounded-xs border border-slate-300 shadow-xs">
           <div className="inline-block animate-spin w-8 h-8 border-2 border-gov-navy border-t-transparent rounded-full mb-3" />
           <p className="text-sm font-bold text-slate-800">
-            Querying Sovereign Legal Metrology Trust Registry...
+            {t('verify.querying')}
           </p>
           <p className="text-xs text-slate-500 mt-1">
-            Validating cryptographic signature, statutory tolerance rules, and revocation status.
+            {t('verify.validatingCrypto')}
           </p>
         </div>
       ) : errorMsg || !certificate ? (
@@ -140,15 +142,15 @@ export const PublicVerifyPage: React.FC = () => {
           <div className="w-10 h-10 bg-rose-50 text-rose-700 rounded-xs flex items-center justify-center mx-auto text-xl font-bold border border-rose-300">
             ✕
           </div>
-          <h2 className="text-base font-bold text-slate-900">Certificate Record Not Found</h2>
+          <h2 className="text-base font-bold text-slate-900">{t('verify.notFoundTitle')}</h2>
           <p className="text-xs text-slate-600 max-w-md mx-auto">
-            {verifyData?.message || errorMsg || 'No record matches this QR token or certificate number in the verification database.'}
+            {verifyData?.message || errorMsg || t('common.noRecords')}
           </p>
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xs max-w-lg mx-auto text-left text-xs text-amber-900">
             <strong className="block uppercase text-[10.5px] font-bold mb-0.5">
-              Notice for Commercial Traders & Consumers:
+              {t('verify.noticeTitle')}
             </strong>
-            Under legal metrology standards, uncertified or expired instruments cannot be legally used in transactions involving weight or measure.
+            {t('verify.noticeBody')}
           </div>
         </div>
       ) : (
@@ -161,10 +163,10 @@ export const PublicVerifyPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xs font-bold uppercase tracking-wider text-gov-navy">
-                  Metrological Traceability & Technical Telemetry
+                  {t('verify.telemetryTitle')}
                 </h3>
                 <p className="text-[11px] text-slate-500">
-                  Mathematical tolerance execution record, rule parameters, and ledger proof.
+                  {t('verify.telemetrySubtitle')}
                 </p>
               </div>
               <button
@@ -172,7 +174,7 @@ export const PublicVerifyPage: React.FC = () => {
                 type="button"
                 className="gov-btn-secondary text-[11px] py-1 px-2.5"
               >
-                {showTechnicalDetails ? 'Hide Audit Log' : 'View Audit Log'}
+                {showTechnicalDetails ? t('verify.hideAuditLog') : t('verify.showAuditLog')}
               </button>
             </div>
 
@@ -180,24 +182,24 @@ export const PublicVerifyPage: React.FC = () => {
               <div className="mt-3 pt-3 border-t border-slate-200 space-y-3 text-xs">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="bg-slate-50 p-2.5 rounded-xs border border-slate-200">
-                    <span className="block text-[10px] font-bold text-slate-500 uppercase">Verification Rule</span>
+                    <span className="block text-[10px] font-bold text-slate-500 uppercase">{t('owner.colRuleRef')}</span>
                     <strong className="text-slate-900 font-mono text-xs">{certificate.ruleCode}</strong>
-                    <span className="block text-slate-600 text-[10.5px]">Version: {certificate.ruleVersion}</span>
+                    <span className="block text-slate-600 text-[10.5px]">{t('admin.colVersion')}: {certificate.ruleVersion}</span>
                   </div>
                   <div className="bg-slate-50 p-2.5 rounded-xs border border-slate-200">
-                    <span className="block text-[10px] font-bold text-slate-500 uppercase">Tolerance Schedule</span>
+                    <span className="block text-[10px] font-bold text-slate-500 uppercase">{t('verify.toleranceSchedule')}</span>
                     <strong className="text-slate-900 font-mono text-xs">NAWI Standard MPE</strong>
                     <span className="block text-slate-600 text-[10.5px]">Limit: ±0.05% error</span>
                   </div>
                   <div className="bg-slate-50 p-2.5 rounded-xs border border-slate-200">
-                    <span className="block text-[10px] font-bold text-slate-500 uppercase">Cryptographic Seal</span>
+                    <span className="block text-[10px] font-bold text-slate-500 uppercase">{t('verify.cryptoSeal')}</span>
                     <strong className="text-slate-900 font-mono text-xs">HMAC SHA-256</strong>
-                    <span className="block text-emerald-800 font-semibold text-[10.5px]">Verified Authentic</span>
+                    <span className="block text-emerald-800 font-semibold text-[10.5px]">{t('verify.verifiedAuthentic')}</span>
                   </div>
                 </div>
 
                 <div className="bg-slate-900 text-slate-200 p-3 rounded-xs font-mono text-[11px] overflow-x-auto">
-                  <div className="text-slate-400 text-[10px] uppercase font-bold mb-1">// Raw Registry Payload</div>
+                  <div className="text-slate-400 text-[10px] uppercase font-bold mb-1">{t('verify.rawPayload')}</div>
                   <pre>{JSON.stringify(verifyData, null, 2)}</pre>
                 </div>
               </div>

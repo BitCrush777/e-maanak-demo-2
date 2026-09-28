@@ -8,16 +8,18 @@ import { OwnerDashboard } from './pages/OwnerDashboard';
 import { OfficerQueuePage } from './pages/OfficerQueuePage';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { PublicVerifyPage } from './pages/PublicVerifyPage';
+import { useTranslation } from 'react-i18next';
 
 const RootRedirect: React.FC = () => {
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sovereign-navy mx-auto mb-2" />
-          <p className="text-xs text-slate-500 font-semibold">Loading Sovereign Portal...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-slate-900 mx-auto mb-2" />
+          <p className="text-xs text-slate-500 font-semibold">{t('common.loading')}</p>
         </div>
       </div>
     );

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import { setAppLanguage } from '../../i18n';
 
 export const GovernmentHeader: React.FC = () => {
   const { user, signOut, signInAsDemo } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t, i18n } = useTranslation();
 
   const [highContrast, setHighContrast] = useState(false);
   const [fontScale, setFontScale] = useState<'sm' | 'md' | 'lg'>('md');
@@ -35,31 +38,33 @@ export const GovernmentHeader: React.FC = () => {
     return location.pathname.startsWith(path);
   };
 
+  const currentLang = i18n.language === 'hi' ? 'hi' : 'en';
+
   return (
     <header className="bg-white border-b border-slate-300 shadow-xs print-hide">
       {/* 1. TOP UTILITY BAR (Official e-Governance Standard) */}
       <div className="bg-slate-100 border-b border-slate-300 text-[11px] text-slate-700 py-1 px-4 sm:px-6 lg:px-8">
         <a href="#main-content" className="skip-to-content">
-          Skip to Main Content
+          {t('common.skipToContent')}
         </a>
 
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           {/* Left: Prototype Notice */}
           <div className="flex items-center space-x-2">
             <span className="font-semibold text-gov-navy uppercase tracking-wider font-mono text-[10px]">
-              e-Maanak Prototype
+              {t('common.sihPrototypeBadge')}
             </span>
             <span className="text-slate-400">|</span>
             <span className="text-slate-600 hidden sm:inline">
-              Smart India Hackathon 2026 (Problem Statement: SIH26036)
+              {t('common.sihNotice')}
             </span>
           </div>
 
-          {/* Right: Accessibility Controls */}
+          {/* Right: Accessibility & Language Controls */}
           <div className="flex items-center space-x-3 text-[11px]">
             {/* Font Resize */}
             <div className="flex items-center space-x-1 border-r border-slate-300 pr-3">
-              <span className="text-slate-500 font-semibold mr-1">Text:</span>
+              <span className="text-slate-500 font-semibold mr-1">{t('common.textSize')}:</span>
               <button
                 type="button"
                 onClick={() => handleFontScale('sm')}
@@ -102,15 +107,37 @@ export const GovernmentHeader: React.FC = () => {
                 }`}
                 title="Toggle High Contrast"
               >
-                {highContrast ? 'Normal Contrast' : 'High Contrast'}
+                {highContrast ? t('common.contrastNormal') : t('common.contrastHigh')}
               </button>
             </div>
 
-            {/* Language indicator */}
-            <div className="hidden md:flex items-center space-x-1 text-slate-600">
-              <span>English</span>
-              <span className="text-slate-400">|</span>
-              <span className="text-slate-400">हिन्दी (Demo)</span>
+            {/* Language Switcher (English | हिन्दी) */}
+            <div className="flex items-center space-x-1" aria-label="Language selection">
+              <span className="text-slate-500 font-semibold mr-1">{t('common.language')}:</span>
+              <button
+                type="button"
+                onClick={() => setAppLanguage('en')}
+                className={`px-1.5 py-0.5 border rounded-xs text-[10px] font-semibold transition ${
+                  currentLang === 'en'
+                    ? 'bg-gov-navy text-white border-gov-navy'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-200'
+                }`}
+                title="Switch interface language to English"
+              >
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => setAppLanguage('hi')}
+                className={`px-1.5 py-0.5 border rounded-xs text-[10px] font-semibold transition ${
+                  currentLang === 'hi'
+                    ? 'bg-gov-navy text-white border-gov-navy'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-200'
+                }`}
+                title="इंटरफ़ेस भाषा हिन्दी में बदलें"
+              >
+                हिन्दी
+              </button>
             </div>
           </div>
         </div>
@@ -137,14 +164,14 @@ export const GovernmentHeader: React.FC = () => {
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-extrabold text-xl sm:text-2xl text-gov-navy tracking-tight uppercase">
-                  e-MAANAK
+                  {t('common.systemTitle')}
                 </span>
                 <span className="border border-slate-400 bg-slate-100 text-slate-700 text-[10px] font-bold px-1.5 py-0.2 rounded-xs uppercase">
-                  SIH 2026 Prototype
+                  {t('common.sihPrototypeBadge')}
                 </span>
               </div>
               <p className="text-[11px] sm:text-xs text-slate-600 font-medium tracking-wide">
-                Sovereign Legal Metrology Verification System
+                {t('common.systemSubtitle')}
               </p>
             </div>
           </Link>
@@ -154,7 +181,7 @@ export const GovernmentHeader: React.FC = () => {
             {/* SIH Evaluator Role Switcher */}
             <div className="hidden xl:flex items-center bg-slate-50 border border-slate-300 p-1 rounded-xs text-xs">
               <span className="text-[10px] font-bold uppercase text-slate-500 px-1.5">
-                Evaluator Role:
+                {t('common.evaluatorRole')}:
               </span>
               <button
                 type="button"
@@ -219,7 +246,7 @@ export const GovernmentHeader: React.FC = () => {
                   onClick={handleLogout}
                   className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xs text-xs font-medium transition"
                 >
-                  Sign Out
+                  {t('common.signOut')}
                 </button>
               </div>
             ) : (
@@ -228,13 +255,13 @@ export const GovernmentHeader: React.FC = () => {
                   to="/login"
                   className="px-3.5 py-1.5 bg-gov-navy hover:bg-gov-hover text-white text-xs font-semibold rounded-xs shadow-xs transition"
                 >
-                  Portal Sign In
+                  {t('common.signIn')}
                 </Link>
                 <Link
                   to="/verify/demo-qr-token-1"
                   className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-xs text-xs font-semibold transition hidden sm:inline-block"
                 >
-                  Verify Certificate
+                  {t('common.verifyCert')}
                 </Link>
               </div>
             )}
@@ -270,7 +297,7 @@ export const GovernmentHeader: React.FC = () => {
                       : 'border-transparent text-slate-200 hover:bg-gov-hover hover:text-white'
                   }`}
                 >
-                  Custodian Dashboard & Instruments
+                  {t('nav.ownerTab')}
                 </Link>
               </>
             )}
@@ -286,7 +313,7 @@ export const GovernmentHeader: React.FC = () => {
                       : 'border-transparent text-slate-200 hover:bg-gov-hover hover:text-white'
                   }`}
                 >
-                  Inspection Workbench & Applications
+                  {t('nav.officerTab')}
                 </Link>
               </>
             )}
@@ -302,7 +329,7 @@ export const GovernmentHeader: React.FC = () => {
                       : 'border-transparent text-slate-200 hover:bg-gov-hover hover:text-white'
                   }`}
                 >
-                  Directorate Administrative Console
+                  {t('nav.adminTab')}
                 </Link>
               </>
             )}
@@ -316,7 +343,7 @@ export const GovernmentHeader: React.FC = () => {
                   : 'border-transparent text-slate-200 hover:bg-gov-hover hover:text-white'
               }`}
             >
-              Public Certificate Verification
+              {t('nav.verifyTab')}
             </Link>
           </div>
 
@@ -329,7 +356,7 @@ export const GovernmentHeader: React.FC = () => {
                   onClick={() => setMobileMenuOpen(false)}
                   className="block px-3 py-2 rounded text-slate-200 hover:bg-gov-hover"
                 >
-                  Custodian Dashboard & Instruments
+                  {t('nav.ownerTab')}
                 </Link>
               )}
 
@@ -339,7 +366,7 @@ export const GovernmentHeader: React.FC = () => {
                   onClick={() => setMobileMenuOpen(false)}
                   className="block px-3 py-2 rounded text-slate-200 hover:bg-gov-hover"
                 >
-                  Inspection Workbench
+                  {t('nav.officerTab')}
                 </Link>
               )}
 
@@ -349,7 +376,7 @@ export const GovernmentHeader: React.FC = () => {
                   onClick={() => setMobileMenuOpen(false)}
                   className="block px-3 py-2 rounded text-slate-200 hover:bg-gov-hover"
                 >
-                  Directorate Administration
+                  {t('nav.adminTab')}
                 </Link>
               )}
 
@@ -358,7 +385,7 @@ export const GovernmentHeader: React.FC = () => {
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-3 py-2 rounded text-slate-200 hover:bg-gov-hover"
               >
-                Public Certificate Verification
+                {t('nav.verifyTab')}
               </Link>
             </div>
           )}

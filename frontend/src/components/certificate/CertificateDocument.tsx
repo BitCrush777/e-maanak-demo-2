@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import QRCode from 'qrcode';
+import { formatDateLocale } from '../../i18n';
 import './PrintStyles.css';
 
 export interface CertificateData {
@@ -47,6 +49,7 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
   showToolbar = false,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
 
@@ -80,19 +83,9 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Format dates safely
+  // Format dates safely using the active locale (Hindi / English)
   const formatDate = (dateStr?: string) => {
-    if (!dateStr) return 'N/A';
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      });
-    } catch {
-      return dateStr;
-    }
+    return formatDateLocale(dateStr);
   };
 
   const isRevoked = data.status === 'REVOKED';
@@ -113,10 +106,10 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
         <div className="print-hide w-full max-w-[210mm] mb-4 flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xs border border-slate-300 shadow-xs">
           <div className="flex items-center space-x-2">
             <span className="inline-flex items-center px-2 py-0.5 rounded-xs text-[11px] font-semibold bg-slate-100 text-slate-800 font-mono border border-slate-300">
-              A4 Portrait Standard
+              {t('certificate.previewA4')}
             </span>
             <span className="text-[11px] text-slate-500 hidden sm:inline">
-              Verified Legal Metrology Certificate
+              {t('certificate.verifiedRecord')}
             </span>
           </div>
 
@@ -125,18 +118,18 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
               onClick={handleCopyLink}
               type="button"
               className="gov-btn-secondary py-1 px-3 text-xs"
-              title="Copy public verification link"
+              title={t('certificate.copyLink')}
             >
-              <span>{copied ? 'Link Copied!' : 'Copy Verification URL'}</span>
+              <span>{copied ? t('certificate.linkCopied') : t('certificate.copyLink')}</span>
             </button>
 
             <button
               onClick={handlePrint}
               type="button"
               className="gov-btn-primary py-1 px-3 text-xs font-bold"
-              title="Print certificate or save as PDF"
+              title={t('certificate.printPdf')}
             >
-              <span>Print / Save PDF (A4)</span>
+              <span>{t('certificate.printPdf')}</span>
             </button>
 
             {onClose && (
@@ -145,7 +138,7 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
                 type="button"
                 className="gov-btn-secondary py-1 px-2.5 text-xs"
               >
-                Close Preview
+                {t('certificate.closePreview')}
               </button>
             )}
           </div>
@@ -161,10 +154,10 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
           <div className="transform -rotate-[28deg] text-center">
             <span className="block text-4xl sm:text-5xl font-black tracking-widest text-slate-900/[0.038] uppercase">
-              e-MAANAK PROTOTYPE
+              {t('certificate.watermarkTitle')}
             </span>
             <span className="block text-base sm:text-lg font-bold tracking-widest text-slate-900/[0.038] uppercase mt-2">
-              SIH 2026 REGULATORY DEMO • SYSTEM GENERATED
+              {t('certificate.watermarkSub')}
             </span>
           </div>
         </div>
@@ -175,8 +168,8 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
           <div className="cert-section border-b-2 border-slate-900 pb-3">
             {/* Top Micro-Header */}
             <div className="flex items-center justify-between text-[9px] font-mono tracking-wider text-slate-500 uppercase pb-1 border-b border-slate-200">
-              <span>SOVEREIGN LEGAL METROLOGY SYSTEM ARCHITECTURE</span>
-              <span>SMART INDIA HACKATHON 2026 PROTOTYPE</span>
+              <span>{t('certificate.topArchitecture')}</span>
+              <span>{t('certificate.topSih')}</span>
             </div>
 
             {/* Main Header Row */}
@@ -198,13 +191,13 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
               {/* Title Typography */}
               <div className="flex-1 text-center">
                 <div className="text-[12px] font-bold tracking-[0.25em] text-slate-700 uppercase font-sans">
-                  e-MAANAK VERIFICATION NETWORK
+                  {t('certificate.network')}
                 </div>
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-950 uppercase mt-0.5">
-                  CERTIFICATE OF VERIFICATION
+                  {t('certificate.title')}
                 </h1>
                 <p className="text-[11px] font-semibold tracking-wide text-slate-600 uppercase mt-0.5">
-                  LEGAL METROLOGY MEASURING INSTRUMENT COMPLIANCE RECORD
+                  {t('certificate.subtitle')}
                 </p>
               </div>
 
@@ -221,10 +214,10 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
                 >
                   <div className="flex items-center space-x-1.5">
                     <span className="w-2 h-2 rounded-full bg-current" />
-                    <span>{data.status}</span>
+                    <span>{t('status.' + data.status, data.status)}</span>
                   </div>
                   <span className="block text-[8px] font-semibold tracking-normal text-slate-500 mt-0.5">
-                    {isValid ? 'COMPLIANT' : isRevoked ? 'REVOKED' : 'EXPIRED'}
+                    {isValid ? t('certificate.compliant') : t('status.' + data.status, data.status)}
                   </span>
                 </div>
               </div>
@@ -233,10 +226,10 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
             {/* Prototype Notice Box (Explicit, Authoritative, Truthful) */}
             <div className="mt-2.5 bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-center">
               <p className="text-[9px] font-bold text-slate-700 tracking-wide uppercase">
-                SYSTEM-GENERATED PROTOTYPE RECORD • DEVELOPED FOR SMART INDIA HACKATHON 2026
+                {t('certificate.prototypeRecord')}
               </p>
               <p className="text-[8px] text-slate-500">
-                This certificate attests to metrological calibration and tolerance testing under automated verification rule execution.
+                {t('certificate.prototypeRecordDesc')}
               </p>
             </div>
           </div>
@@ -244,22 +237,22 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
           {/* METADATA BAR / KEY REFERENCE GRID */}
           <div className="cert-section grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
             <div className="bg-slate-50 border border-slate-200 p-2 rounded">
-              <span className="block text-[9px] font-bold text-slate-500 uppercase">Certificate Number</span>
+              <span className="block text-[9px] font-bold text-slate-500 uppercase">{t('certificate.certNumber')}</span>
               <strong className="font-mono text-slate-950 font-bold text-xs">{data.certificateNumber}</strong>
             </div>
 
             <div className="bg-slate-50 border border-slate-200 p-2 rounded">
-              <span className="block text-[9px] font-bold text-slate-500 uppercase">Date of Issue</span>
+              <span className="block text-[9px] font-bold text-slate-500 uppercase">{t('certificate.issueDate')}</span>
               <span className="font-medium text-slate-900">{formatDate(data.issueDate)}</span>
             </div>
 
             <div className="bg-slate-50 border border-slate-200 p-2 rounded">
-              <span className="block text-[9px] font-bold text-slate-500 uppercase">Valid Until / Expiry</span>
+              <span className="block text-[9px] font-bold text-slate-500 uppercase">{t('certificate.expiryDate')}</span>
               <span className="font-semibold text-slate-900">{formatDate(data.expiryDate)}</span>
             </div>
 
             <div className="bg-slate-50 border border-slate-200 p-2 rounded">
-              <span className="block text-[9px] font-bold text-slate-500 uppercase">Statutory Rule Code</span>
+              <span className="block text-[9px] font-bold text-slate-500 uppercase">{t('certificate.ruleCode')}</span>
               <span className="font-mono font-bold text-slate-950">
                 {data.ruleCode || 'WEIGHING_SCALE_V1'} <span className="text-[10px] text-slate-600 font-normal">({data.ruleVersion || 'v1.0'})</span>
               </span>
@@ -269,11 +262,12 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
           {/* ATTESTATION PROSE */}
           <div className="cert-section text-[10px] leading-relaxed text-slate-700 bg-slate-50/60 p-2.5 rounded border-l-2 border-slate-800">
             <p>
-              <strong className="text-slate-900">System Attestation:</strong> This document certifies that the measuring
-              instrument detailed herein was systematically examined, calibrated, and verified pursuant to{' '}
-              <span className="font-semibold text-slate-900">{data.ruleDescription || 'Standard Legal Metrology Verification Procedure'}</span>{' '}
-              ({data.ruleCode || 'WEIGHING_SCALE_V1'} {data.ruleVersion || 'v1.0'}). The observed measurement errors comply with the
-              Maximum Permissible Error (MPE) thresholds stipulated for commercial trade verification.
+              <strong className="text-slate-900">{t('certificate.attestationTitle')} </strong>
+              {t('certificate.attestationBody', {
+                desc: data.ruleDescription || 'Standard Legal Metrology Verification Procedure',
+                code: data.ruleCode || 'WEIGHING_SCALE_V1',
+                version: data.ruleVersion || 'v1.0',
+              })}
             </p>
           </div>
 
@@ -281,49 +275,49 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
           <div className="cert-section">
             <div className="flex items-center justify-between border-b border-slate-300 pb-1 mb-2">
               <h2 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-900">
-                1. Instrument Identification & Ownership
+                {t('certificate.sec1Title')}
               </h2>
               <span className="text-[9px] font-mono text-slate-500">ID: {data.instrument?.serialNumber}</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-2 text-[10px]">
               <div>
-                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">Instrument Category</span>
+                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">{t('certificate.instrumentCategory')}</span>
                 <span className="font-semibold text-slate-900">{data.instrument?.type?.replace(/_/g, ' ') || 'WEIGHING SCALE'}</span>
               </div>
 
               <div>
-                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">Manufacturer</span>
+                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">{t('certificate.manufacturer')}</span>
                 <span className="font-semibold text-slate-900">{data.instrument?.manufacturer || 'N/A'}</span>
               </div>
 
               <div>
-                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">Model Designation</span>
+                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">{t('certificate.modelDesignation')}</span>
                 <span className="font-semibold text-slate-900">{data.instrument?.model || 'N/A'}</span>
               </div>
 
               <div>
-                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">Serial Number</span>
+                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">{t('certificate.serialNumber')}</span>
                 <span className="font-mono font-bold text-slate-950">{data.instrument?.serialNumber || 'N/A'}</span>
               </div>
 
               <div>
-                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">Rated Capacity / Range</span>
+                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">{t('certificate.ratedCapacity')}</span>
                 <span className="font-semibold text-slate-900">{data.instrument?.ratedCapacity || 'Standard Capacity'}</span>
               </div>
 
               <div>
-                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">Custodian / Business Name</span>
+                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">{t('certificate.custodian')}</span>
                 <span className="font-semibold text-slate-900">{data.applicantName || 'Sovereign Agro Logistics Ltd.'}</span>
               </div>
 
               <div>
-                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">Verification Interval</span>
-                <span className="font-semibold text-slate-900">12 Calendar Months</span>
+                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">{t('certificate.verificationInterval')}</span>
+                <span className="font-semibold text-slate-900">{t('certificate.intervalTwelveMonths')}</span>
               </div>
 
               <div>
-                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">Inspection ID</span>
+                <span className="block text-[8.5px] font-semibold text-slate-500 uppercase">{t('certificate.inspectionId')}</span>
                 <span className="font-mono text-slate-900">{data.verificationInspectionId || 'insp-001'}</span>
               </div>
             </div>
@@ -333,20 +327,20 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
           <div className="cert-section">
             <div className="flex items-center justify-between border-b border-slate-300 pb-1 mb-1.5">
               <h2 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-900">
-                2. Metrological Test Readings & Tolerance Audit
+                {t('certificate.sec2Title')}
               </h2>
-              <span className="text-[9px] font-mono text-emerald-800 font-bold">ALL TOLERANCE POINTS SATISFIED</span>
+              <span className="text-[9px] font-mono text-emerald-800 font-bold">{t('certificate.allTolerancesSatisfied')}</span>
             </div>
 
             <table className="w-full text-left text-[9.5px] border-collapse border border-slate-300">
               <thead>
                 <tr className="bg-slate-100 border-b border-slate-300 text-slate-700 uppercase font-mono text-[8.5px]">
-                  <th className="py-1 px-2 border-r border-slate-300">Test Point / Description</th>
-                  <th className="py-1 px-2 border-r border-slate-300">Reference Standard</th>
-                  <th className="py-1 px-2 border-r border-slate-300">Observed Value</th>
-                  <th className="py-1 px-2 border-r border-slate-300">Absolute Error</th>
-                  <th className="py-1 px-2 border-r border-slate-300">Relative Error</th>
-                  <th className="py-1 px-2 text-center">Permissible Status</th>
+                  <th className="py-1 px-2 border-r border-slate-300">{t('certificate.colPointDesc')}</th>
+                  <th className="py-1 px-2 border-r border-slate-300">{t('certificate.colRefStd')}</th>
+                  <th className="py-1 px-2 border-r border-slate-300">{t('certificate.colObsVal')}</th>
+                  <th className="py-1 px-2 border-r border-slate-300">{t('certificate.colAbsErr')}</th>
+                  <th className="py-1 px-2 border-r border-slate-300">{t('certificate.colRelErr')}</th>
+                  <th className="py-1 px-2 text-center">{t('certificate.colPermStatus')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -370,7 +364,7 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
                               : 'bg-rose-100 text-rose-800'
                           }`}
                         >
-                          {reading.result}
+                          {t('status.' + reading.result, reading.result)}
                         </span>
                       </td>
                     </tr>
@@ -378,7 +372,7 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
                 ) : (
                   <tr>
                     <td colSpan={6} className="py-2 px-2 text-center text-slate-500 italic">
-                      Standard calibration tolerances satisfied across full measurement span.
+                      {t('certificate.noReadingsFallback')}
                     </td>
                   </tr>
                 )}
@@ -399,18 +393,18 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
                   />
                 ) : (
                   <div className="w-24 h-24 bg-slate-200 flex items-center justify-center text-[10px] text-slate-500">
-                    Generating QR...
+                    {t('certificate.generatingQr')}
                   </div>
                 )}
                 <span className="text-[8px] font-mono text-slate-600 mt-1 uppercase tracking-tight">
-                  Scan to Verify Authenticity
+                  {t('certificate.scanVerify')}
                 </span>
               </div>
 
               {/* Public Verification Details & Token */}
               <div className="sm:col-span-5 text-[9px] space-y-1.5">
                 <div>
-                  <span className="block font-bold text-slate-700 uppercase">Public Verification Registry:</span>
+                  <span className="block font-bold text-slate-700 uppercase">{t('certificate.publicRegistry')}</span>
                   <p className="font-mono text-slate-900 text-[8.5px] break-all bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
                     {fullVerificationUrl}
                   </p>
@@ -418,17 +412,17 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
 
                 <div className="grid grid-cols-2 gap-2 pt-0.5">
                   <div>
-                    <span className="block text-[8px] font-semibold text-slate-500 uppercase">Verification Token</span>
+                    <span className="block text-[8px] font-semibold text-slate-500 uppercase">{t('certificate.verificationToken')}</span>
                     <span className="font-mono font-bold text-slate-800">{verificationToken}</span>
                   </div>
                   <div>
-                    <span className="block text-[8px] font-semibold text-slate-500 uppercase">Integrity Hash</span>
+                    <span className="block text-[8px] font-semibold text-slate-500 uppercase">{t('certificate.integrityHash')}</span>
                     <span className="font-mono text-[8px] text-slate-600">{mockCertHash}</span>
                   </div>
                 </div>
 
                 <p className="text-[8px] text-slate-500 leading-tight">
-                  Anyone can verify the legitimacy, test logs, and revocation status of this instrument in real-time by scanning the QR code or searching the token in the registry.
+                  {t('certificate.scanInstructions')}
                 </p>
               </div>
 
@@ -436,25 +430,25 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
               <div className="sm:col-span-4 border border-slate-300 rounded p-2.5 bg-slate-50 flex flex-col justify-between h-full">
                 <div>
                   <span className="block text-[8px] font-bold text-slate-500 uppercase tracking-wider">
-                    Authorized Sign-off
+                    {t('certificate.authorizedSignOff')}
                   </span>
                   <div className="mt-1">
                     <span className="block font-bold text-slate-900 text-[10px]">
                       {data.verificationOfficer || 'Inspector Rajesh Kumar'}
                     </span>
                     <span className="block text-[8.5px] text-slate-600">
-                      Legal Metrology Verification Officer
+                      {t('certificate.verifyingOfficerRole')}
                     </span>
                     <span className="block text-[8px] text-slate-500 font-mono">
-                      Zone-04 Metrological Laboratory
+                      {t('certificate.zoneLab')}
                     </span>
                   </div>
                 </div>
 
                 <div className="mt-3 pt-2 border-t border-slate-300">
                   <div className="flex items-center justify-between text-[8px] text-slate-500 font-mono">
-                    <span>Verified: {formatDate(data.issueDate)}</span>
-                    <span className="text-emerald-700 font-bold">DIGITALLY STAMPED</span>
+                    <span>{t('certificate.verifiedOn', { date: formatDate(data.issueDate) })}</span>
+                    <span className="text-emerald-700 font-bold">{t('certificate.digitallyStamped')}</span>
                   </div>
                 </div>
               </div>
@@ -464,10 +458,10 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
           {/* FOOTER & REGULATORY DISCLAIMER */}
           <div className="cert-section certificate-footer border-t border-slate-300 pt-2 text-[8px] text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-1">
             <div className="text-center sm:text-left">
-              <span className="font-bold text-slate-700">e-Maanak System Architecture Prototype</span> • Smart India Hackathon 2026
+              <span className="font-bold text-slate-700">{t('footer.brandName')}</span> • {t('footer.sihBadge')}
             </div>
             <div className="text-center sm:text-right font-mono">
-              Document Ref: {data.certificateNumber} • Page 1 of 1
+              {t('certificate.docRef', { num: data.certificateNumber })}
             </div>
           </div>
         </div>
