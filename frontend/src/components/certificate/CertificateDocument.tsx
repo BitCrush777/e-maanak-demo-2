@@ -54,7 +54,7 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
   const [copied, setCopied] = useState(false);
 
   const verificationToken = data.qrToken || data.certificateNumber;
-  const baseUrl = originUrl || (typeof window !== 'undefined' ? window.location.origin : 'https://emaanak.sih.demo');
+  const baseUrl = originUrl || (typeof window !== 'undefined' ? window.location.origin : 'https://emaanak.org');
   const fullVerificationUrl = `${baseUrl}/verify/${verificationToken}`;
 
   useEffect(() => {
@@ -169,7 +169,7 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
             {/* Top Micro-Header */}
             <div className="flex items-center justify-between text-[9px] font-mono tracking-wider text-slate-500 uppercase pb-1 border-b border-slate-200">
               <span>{t('certificate.topArchitecture')}</span>
-              <span>{t('certificate.topSih')}</span>
+              <span>{t('certificate.topProtocol')}</span>
             </div>
 
             {/* Main Header Row */}
@@ -223,13 +223,13 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
               </div>
             </div>
 
-            {/* Prototype Notice Box (Explicit, Authoritative, Truthful) */}
+            {/* Statutory Attestation Notice Box */}
             <div className="mt-2.5 bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-center">
               <p className="text-[9px] font-bold text-slate-700 tracking-wide uppercase">
-                {t('certificate.prototypeRecord')}
+                {t('certificate.noticeTitle')}
               </p>
               <p className="text-[8px] text-slate-500">
-                {t('certificate.prototypeRecordDesc')}
+                {t('certificate.noticeDesc')}
               </p>
             </div>
           </div>
@@ -458,7 +458,7 @@ export const CertificateDocument: React.FC<CertificateDocumentProps> = ({
           {/* FOOTER & REGULATORY DISCLAIMER */}
           <div className="cert-section certificate-footer border-t border-slate-300 pt-2 text-[8px] text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-1">
             <div className="text-center sm:text-left">
-              <span className="font-bold text-slate-700">{t('footer.brandName')}</span> • {t('footer.sihBadge')}
+              <span className="font-bold text-slate-700">{t('common.systemTitle')}</span> • {t('certificate.footerAuthority')}
             </div>
             <div className="text-center sm:text-right font-mono">
               {t('certificate.docRef', { num: data.certificateNumber })}

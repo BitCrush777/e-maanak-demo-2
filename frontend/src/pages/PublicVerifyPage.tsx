@@ -108,7 +108,7 @@ export const PublicVerifyPage: React.FC = () => {
         </form>
 
         <div className="mt-2.5 text-[11px] text-slate-500 flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-slate-700">{t('verify.demoTokensLabel')}</span>
+          <span className="font-semibold text-slate-700">{t('verify.sampleTokensLabel')}</span>
           <button
             type="button"
             onClick={() => navigate('/verify/demo-qr-token-1')}

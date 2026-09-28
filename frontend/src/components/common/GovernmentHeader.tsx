@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { setAppLanguage } from '../../i18n';
 
 export const GovernmentHeader: React.FC = () => {
-  const { user, signOut, signInAsDemo } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
@@ -42,21 +42,21 @@ export const GovernmentHeader: React.FC = () => {
 
   return (
     <header className="bg-white border-b border-slate-300 shadow-xs print-hide">
-      {/* 1. TOP UTILITY BAR (Official e-Governance Standard) */}
+      {/* 1. TOP UTILITY BAR */}
       <div className="bg-slate-100 border-b border-slate-300 text-[11px] text-slate-700 py-1 px-4 sm:px-6 lg:px-8">
         <a href="#main-content" className="skip-to-content">
           {t('common.skipToContent')}
         </a>
 
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
-          {/* Left: Prototype Notice */}
+          {/* Left: System Utility Title */}
           <div className="flex items-center space-x-2">
-            <span className="font-semibold text-gov-navy uppercase tracking-wider font-mono text-[10px]">
-              {t('common.sihPrototypeBadge')}
+            <span className="font-semibold text-slate-800 tracking-wide font-mono text-[10px]">
+              {t('common.utilityTitle')}
             </span>
             <span className="text-slate-400">|</span>
             <span className="text-slate-600 hidden sm:inline">
-              {t('common.sihNotice')}
+              {t('common.utilitySubtitle')}
             </span>
           </div>
 
@@ -144,7 +144,7 @@ export const GovernmentHeader: React.FC = () => {
       </div>
 
       {/* 2. MAIN HEADER BAR (e-Maanak Regulatory Branding) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
         <div className="flex items-center justify-between gap-4">
           {/* Left Brand Identity */}
           <Link to="/" className="flex items-center space-x-3.5 group">
@@ -162,77 +162,22 @@ export const GovernmentHeader: React.FC = () => {
             </div>
 
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-xl sm:text-2xl text-gov-navy tracking-tight uppercase">
-                  {t('common.systemTitle')}
-                </span>
-                <span className="border border-slate-400 bg-slate-100 text-slate-700 text-[10px] font-bold px-1.5 py-0.2 rounded-xs uppercase">
-                  {t('common.sihPrototypeBadge')}
-                </span>
-              </div>
+              <span className="font-extrabold text-xl sm:text-2xl text-gov-navy tracking-tight uppercase block leading-tight">
+                {t('common.systemTitle')}
+              </span>
               <p className="text-[11px] sm:text-xs text-slate-600 font-medium tracking-wide">
                 {t('common.systemSubtitle')}
               </p>
             </div>
           </Link>
 
-          {/* Right: Evaluator Switcher & User Account Block */}
+          {/* Right: User Account / Auth Actions */}
           <div className="flex items-center space-x-3">
-            {/* SIH Evaluator Role Switcher */}
-            <div className="hidden xl:flex items-center bg-slate-50 border border-slate-300 p-1 rounded-xs text-xs">
-              <span className="text-[10px] font-bold uppercase text-slate-500 px-1.5">
-                {t('common.evaluatorRole')}:
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  signInAsDemo('OWNER');
-                  navigate('/owner');
-                }}
-                className={`px-2 py-0.5 rounded-xs text-[11px] font-semibold transition ${
-                  user?.role === 'OWNER'
-                    ? 'bg-gov-navy text-white'
-                    : 'text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                Owner
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  signInAsDemo('OFFICER');
-                  navigate('/officer');
-                }}
-                className={`px-2 py-0.5 rounded-xs text-[11px] font-semibold transition ${
-                  user?.role === 'OFFICER'
-                    ? 'bg-gov-navy text-white'
-                    : 'text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                Officer
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  signInAsDemo('ADMIN');
-                  navigate('/admin');
-                }}
-                className={`px-2 py-0.5 rounded-xs text-[11px] font-semibold transition ${
-                  user?.role === 'ADMIN'
-                    ? 'bg-gov-navy text-white'
-                    : 'text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                Admin
-              </button>
-            </div>
-
-            {/* User Account / Auth Actions */}
             {user ? (
               <div className="flex items-center space-x-2 text-xs">
                 <div className="text-right hidden sm:block border-l border-slate-300 pl-3">
                   <div className="font-semibold text-slate-900 leading-tight">
-                    {user.fullName}
+                    {user.fullName || user.email}
                   </div>
                   <div className="flex items-center justify-end space-x-1 text-[10.5px] text-slate-500">
                     <span className="font-bold text-gov-navy uppercase tracking-wider">
@@ -258,7 +203,7 @@ export const GovernmentHeader: React.FC = () => {
                   {t('common.signIn')}
                 </Link>
                 <Link
-                  to="/verify/demo-qr-token-1"
+                  to="/verify"
                   className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-xs text-xs font-semibold transition hidden sm:inline-block"
                 >
                   {t('common.verifyCert')}
@@ -288,55 +233,49 @@ export const GovernmentHeader: React.FC = () => {
           <div className="hidden md:flex items-center space-x-0.5 text-xs font-semibold uppercase tracking-wider">
             {/* Owner Navigation */}
             {user?.role === 'OWNER' && (
-              <>
-                <Link
-                  to="/owner"
-                  className={`px-4 py-2.5 border-b-2 transition ${
-                    isActive('/owner')
-                      ? 'bg-gov-hover border-amber-400 text-white'
-                      : 'border-transparent text-slate-200 hover:bg-gov-hover hover:text-white'
-                  }`}
-                >
-                  {t('nav.ownerTab')}
-                </Link>
-              </>
+              <Link
+                to="/owner"
+                className={`px-4 py-2.5 border-b-2 transition ${
+                  isActive('/owner')
+                    ? 'bg-gov-hover border-amber-400 text-white'
+                    : 'border-transparent text-slate-200 hover:bg-gov-hover hover:text-white'
+                }`}
+              >
+                {t('nav.ownerTab')}
+              </Link>
             )}
 
             {/* Officer Navigation */}
             {user?.role === 'OFFICER' && (
-              <>
-                <Link
-                  to="/officer"
-                  className={`px-4 py-2.5 border-b-2 transition ${
-                    isActive('/officer')
-                      ? 'bg-gov-hover border-amber-400 text-white'
-                      : 'border-transparent text-slate-200 hover:bg-gov-hover hover:text-white'
-                  }`}
-                >
-                  {t('nav.officerTab')}
-                </Link>
-              </>
+              <Link
+                to="/officer"
+                className={`px-4 py-2.5 border-b-2 transition ${
+                  isActive('/officer')
+                    ? 'bg-gov-hover border-amber-400 text-white'
+                    : 'border-transparent text-slate-200 hover:bg-gov-hover hover:text-white'
+                }`}
+              >
+                {t('nav.officerTab')}
+              </Link>
             )}
 
             {/* Admin Navigation */}
             {user?.role === 'ADMIN' && (
-              <>
-                <Link
-                  to="/admin"
-                  className={`px-4 py-2.5 border-b-2 transition ${
-                    isActive('/admin')
-                      ? 'bg-gov-hover border-amber-400 text-white'
-                      : 'border-transparent text-slate-200 hover:bg-gov-hover hover:text-white'
-                  }`}
-                >
-                  {t('nav.adminTab')}
-                </Link>
-              </>
+              <Link
+                to="/admin"
+                className={`px-4 py-2.5 border-b-2 transition ${
+                  isActive('/admin')
+                    ? 'bg-gov-hover border-amber-400 text-white'
+                    : 'border-transparent text-slate-200 hover:bg-gov-hover hover:text-white'
+                }`}
+              >
+                {t('nav.adminTab')}
+              </Link>
             )}
 
             {/* Public / Common Verification Link */}
             <Link
-              to="/verify/demo-qr-token-1"
+              to="/verify"
               className={`px-4 py-2.5 border-b-2 transition ${
                 location.pathname.startsWith('/verify')
                   ? 'bg-gov-hover border-amber-400 text-white'
@@ -381,7 +320,7 @@ export const GovernmentHeader: React.FC = () => {
               )}
 
               <Link
-                to="/verify/demo-qr-token-1"
+                to="/verify"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-3 py-2 rounded text-slate-200 hover:bg-gov-hover"
               >

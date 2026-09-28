@@ -114,7 +114,7 @@ export const INITIAL_RULES: MockRule[] = [
     instrumentType: 'WEIGHING_SCALE',
     ruleCode: 'WEIGHING_SCALE_V1',
     ruleVersion: '1.0',
-    description: 'Standard Verification Procedure for Non-Automatic Weighing Instruments (SIH 2026)',
+    description: 'Standard Verification Procedure for Non-Automatic Weighing Instruments (Statutory Model v1.0)',
     isActive: true,
     toleranceConfig: {
       absoluteTolerance: '0.01',

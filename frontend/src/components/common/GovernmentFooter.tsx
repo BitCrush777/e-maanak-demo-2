@@ -11,19 +11,11 @@ export const GovernmentFooter: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Col 1: System Identity */}
           <div className="space-y-2 md:col-span-1">
-            <div className="flex items-center space-x-2">
-              <span className="font-extrabold text-sm text-white uppercase tracking-wider">
-                {t('common.systemTitle')}
-              </span>
-              <span className="text-[10px] bg-slate-800 text-amber-400 px-1.5 py-0.2 border border-slate-700 rounded-xs font-mono">
-                SIH26036
-              </span>
-            </div>
+            <span className="font-extrabold text-sm text-white uppercase tracking-wider block">
+              {t('common.systemTitle')}
+            </span>
             <p className="text-[11px] text-slate-400 leading-relaxed">
               {t('common.systemSubtitle')}
-            </p>
-            <p className="text-[10px] text-slate-500">
-              {t('common.sihNotice')}
             </p>
           </div>
 
@@ -34,7 +26,7 @@ export const GovernmentFooter: React.FC = () => {
             </h3>
             <ul className="space-y-1 text-[11px] text-slate-400">
               <li>
-                <Link to="/verify/demo-qr-token-1" className="hover:text-white transition">
+                <Link to="/verify" className="hover:text-white transition">
                   {t('nav.verifyTab')}
                 </Link>
               </li>
@@ -69,16 +61,16 @@ export const GovernmentFooter: React.FC = () => {
             </ul>
           </div>
 
-          {/* Col 4: Prototype Disclaimer */}
+          {/* Col 4: System Information */}
           <div>
-            <h3 className="font-bold text-xs uppercase tracking-wider text-amber-400 mb-2 pb-1 border-b border-slate-800">
+            <h3 className="font-bold text-xs uppercase tracking-wider text-slate-200 mb-2 pb-1 border-b border-slate-800">
               {t('common.footerDisclaimer')}
             </h3>
             <p className="text-[11px] text-slate-400 leading-relaxed">
               {t('common.footerDisclaimerText')}
             </p>
             <div className="mt-2 text-[10px] text-slate-500 font-mono">
-              Node ID: sih-2026-node-01 • Version 1.0.0
+              System Node: em-node-01 • Version 1.0.0
             </div>
           </div>
         </div>
@@ -89,11 +81,11 @@ export const GovernmentFooter: React.FC = () => {
             {t('common.footerRights')}
           </div>
           <div className="flex items-center space-x-4">
-            <span className="hover:text-slate-300">{t('common.footerAccessibility')}</span>
+            <span className="hover:text-slate-300 cursor-pointer">{t('common.footerAccessibility')}</span>
             <span>•</span>
-            <span className="hover:text-slate-300">{t('common.footerPrivacy')}</span>
+            <span className="hover:text-slate-300 cursor-pointer">{t('common.footerPrivacy')}</span>
             <span>•</span>
-            <span className="hover:text-slate-300">{t('common.footerTerms')}</span>
+            <span className="hover:text-slate-300 cursor-pointer">{t('common.footerTerms')}</span>
           </div>
         </div>
       </div>
