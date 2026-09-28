@@ -7,7 +7,7 @@ import { GovernmentFooter } from '../components/common/GovernmentFooter';
 import { Alert } from '../components/common/Alert';
 
 export const LoginPage: React.FC = () => {
-  const { signIn } = useAuth();
+  const { signIn, signInAsDemo } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -16,6 +16,13 @@ export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const handleQuickRole = (role: 'OWNER' | 'OFFICER' | 'ADMIN') => {
+    signInAsDemo(role);
+    if (role === 'OFFICER') navigate('/officer');
+    else if (role === 'ADMIN') navigate('/admin');
+    else navigate('/owner');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +93,50 @@ export const LoginPage: React.FC = () => {
                     {t('auth.step3Desc')}
                   </p>
                 </div>
+              </div>
+            </div>
+
+            {/* Quick Role Access Profiles (Owner, Officer, Admin) */}
+            <div className="bg-white border border-slate-300 p-4 rounded-xs shadow-xs">
+              <div className="border-b border-slate-200 pb-2 mb-2.5">
+                <h2 className="text-xs font-bold text-gov-navy uppercase tracking-wide">
+                  {t('auth.quickRoleAccess')}
+                </h2>
+                <p className="text-[11px] text-slate-500">
+                  {t('auth.quickRoleDesc')}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => handleQuickRole('OWNER')}
+                  className="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-300 hover:border-gov-navy rounded-xs text-left shadow-xs transition"
+                >
+                  <div className="font-bold text-slate-900">{t('auth.custodianTitle')}</div>
+                  <div className="text-[10.5px] text-slate-500">{t('auth.custodianSubtitle')}</div>
+                  <div className="text-[10px] text-gov-navy font-bold mt-1.5">{t('auth.signInAsOwner')}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleQuickRole('OFFICER')}
+                  className="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-300 hover:border-gov-navy rounded-xs text-left shadow-xs transition"
+                >
+                  <div className="font-bold text-slate-900">{t('auth.officerTitle')}</div>
+                  <div className="text-[10.5px] text-slate-500">{t('auth.officerSubtitle')}</div>
+                  <div className="text-[10px] text-gov-navy font-bold mt-1.5">{t('auth.signInAsOfficer')}</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleQuickRole('ADMIN')}
+                  className="p-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-300 hover:border-gov-navy rounded-xs text-left shadow-xs transition"
+                >
+                  <div className="font-bold text-slate-900">{t('auth.adminTitle')}</div>
+                  <div className="text-[10.5px] text-slate-500">{t('auth.adminSubtitle')}</div>
+                  <div className="text-[10px] text-gov-navy font-bold mt-1.5">{t('auth.signInAsAdmin')}</div>
+                </button>
               </div>
             </div>
 

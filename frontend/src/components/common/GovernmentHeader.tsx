@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { setAppLanguage } from '../../i18n';
 
 export const GovernmentHeader: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, signInAsDemo } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { t, i18n } = useTranslation();
@@ -171,8 +171,60 @@ export const GovernmentHeader: React.FC = () => {
             </div>
           </Link>
 
-          {/* Right: User Account / Auth Actions */}
+          {/* Right: Role Switcher & User Account Actions */}
           <div className="flex items-center space-x-3">
+            {/* Quick Role Options (Owner, Officer, Admin) */}
+            <div className="hidden lg:flex items-center bg-slate-50 border border-slate-300 p-0.5 rounded-xs text-xs">
+              <span className="text-[10px] font-bold uppercase text-slate-500 px-1.5">
+                {t('common.roleSelector')}:
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  signInAsDemo('OWNER');
+                  navigate('/owner');
+                }}
+                className={`px-2 py-0.5 rounded-xs text-[11px] font-semibold transition ${
+                  user?.role === 'OWNER'
+                    ? 'bg-gov-navy text-white'
+                    : 'text-slate-700 hover:bg-slate-200'
+                }`}
+                title="Switch to Owner Portal"
+              >
+                {t('common.ownerRole')}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  signInAsDemo('OFFICER');
+                  navigate('/officer');
+                }}
+                className={`px-2 py-0.5 rounded-xs text-[11px] font-semibold transition ${
+                  user?.role === 'OFFICER'
+                    ? 'bg-gov-navy text-white'
+                    : 'text-slate-700 hover:bg-slate-200'
+                }`}
+                title="Switch to Officer Portal"
+              >
+                {t('common.officerRole')}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  signInAsDemo('ADMIN');
+                  navigate('/admin');
+                }}
+                className={`px-2 py-0.5 rounded-xs text-[11px] font-semibold transition ${
+                  user?.role === 'ADMIN'
+                    ? 'bg-gov-navy text-white'
+                    : 'text-slate-700 hover:bg-slate-200'
+                }`}
+                title="Switch to Admin Portal"
+              >
+                {t('common.adminRole')}
+              </button>
+            </div>
+
             {user ? (
               <div className="flex items-center space-x-2 text-xs">
                 <div className="text-right hidden sm:block border-l border-slate-300 pl-3">
@@ -326,6 +378,47 @@ export const GovernmentHeader: React.FC = () => {
               >
                 {t('nav.verifyTab')}
               </Link>
+
+              <div className="pt-2 mt-2 border-t border-slate-700 px-3 pb-1">
+                <span className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+                  {t('common.roleSelector')}:
+                </span>
+                <div className="flex items-center space-x-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      signInAsDemo('OWNER');
+                      setMobileMenuOpen(false);
+                      navigate('/owner');
+                    }}
+                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xs text-[11px] font-semibold"
+                  >
+                    {t('common.ownerRole')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      signInAsDemo('OFFICER');
+                      setMobileMenuOpen(false);
+                      navigate('/officer');
+                    }}
+                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xs text-[11px] font-semibold"
+                  >
+                    {t('common.officerRole')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      signInAsDemo('ADMIN');
+                      setMobileMenuOpen(false);
+                      navigate('/admin');
+                    }}
+                    className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xs text-[11px] font-semibold"
+                  >
+                    {t('common.adminRole')}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
