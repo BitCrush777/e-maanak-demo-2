@@ -1,95 +1,45 @@
-```
 # Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
 
 # Prisma
 prisma/migrations/
 prisma/sqlite.db
 prisma/sqlite.db-journal
 
-# Environment
-.env
-.env.local
-*.env.*
-
-# Logs
-*.log
-
-# Temporary files
-*.tmp
-*.swp
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-.ENV
-.python-version
-
 # Build outputs
 dist/
 build/
-target/
 out/
 coverage/
-htmlcov/
-.coverage
 
-# Editors
+# OS and Editor
+.DS_Store
+Thumbs.db
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Testing
-.mypy_cache/
-.pytest_cache/
-.nyc_output/
-coverage/
-
-# Gradle
-.gradle/
-
-# Compiled Binary Files
+# Compiled Binaries
 *.exe
 *.dll
 *.so
-*.a
-*.obj
-*.out
-*.class
-
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
-```.next/
-.next/
+*.dylib
