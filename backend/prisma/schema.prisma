@@ -152,7 +152,6 @@ model Instrument {
   // Relations
   owner        User                      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   applications VerificationApplication[]
-  certificates Certificate[]
 
   @@unique([ownerId, serialNumber])
   @@index([ownerId])
@@ -239,7 +238,6 @@ model Certificate {
 
   // Relations
   verificationInspection VerificationInspection @relation(fields: [verificationInspectionId], references: [id], map: "Certificate_inspection_fkey")
-  instrument             Instrument             @relation(fields: [verificationInspectionId], references: [id], map: "Certificate_instrument_fkey")
   revokedBy              User?                  @relation("RevokedBy", fields: [revokedById], references: [id])
 
   @@index([certificateNumber])

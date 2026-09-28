@@ -43,7 +43,7 @@ async function getSigningKey(header: any): Promise<string> {
       if (err) {
         reject(err);
       } else {
-        const signingKey = key?.getPublicKey?.() || key?.rsaPublicKey;
+        const signingKey = key?.getPublicKey?.() || (key as any)?.rsaPublicKey;
         resolve(signingKey as string);
       }
     });

@@ -26,7 +26,7 @@ const inspectionSchema = z.object({
  * GET /api/v1/verifications/rules
  * Get active verification rules
  */
-router.get('/rules', authenticate, async (req, res) => {
+router.get('/rules', authenticate, async (_req, res) => {
   try {
     const rules = await prisma.instrumentTypeRule.findMany({
       where: { isActive: true },
@@ -115,7 +115,7 @@ router.get('/queue', authenticate, requireRole('OFFICER', 'ADMIN'), async (req, 
  * POST /api/v1/verifications/inspect
  * Perform verification inspection (Officer only)
  */
-router.post('/inspect', authenticate, requireRole('OFFICER'), validate(inspectionSchema), async (req, res) => {
+router.post('/inspect', authenticate, requireRole('OFFICER'), validate(inspectionSchema), async (req, res): Promise<any> => {
   try {
     const { applicationId, ruleId, clientOperationId, notes, readings } = req.body;
 
@@ -165,7 +165,6 @@ router.post('/inspect', authenticate, requireRole('OFFICER'), validate(inspectio
     // Process readings with authoritative calculation
     const toleranceConfig = rule.toleranceConfig as any;
     const absoluteTolerance = new Decimal(toleranceConfig.absoluteTolerance || '0');
-    const percentageTolerance = new Decimal(toleranceConfig.percentageTolerance || '0');
 
     let overallResult: InspectionResult = InspectionResult.PASS;
     const processedReadings = [];
@@ -293,9 +292,9 @@ router.post('/inspect', authenticate, requireRole('OFFICER'), validate(inspectio
  * POST /api/v1/verifications/sync
  * Sync offline inspections (Officer only)
  */
-router.post('/sync', authenticate, requireRole('OFFICER'), validate(inspectionSchema), async (req, res) => {
+router.post('/sync', authenticate, requireRole('OFFICER'), validate(inspectionSchema), async (req, res): Promise<any> => {
   // Reuse inspect logic with idempotency
-  return router.handle(req, res, () => {});
+  return (router as any).handle(req, res, () => {});
 });
 
 export default router;

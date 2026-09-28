@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { PrismaClient, InstrumentStatus } from '@prisma/client';
-import Decimal from 'decimal.js';
 import { authenticate, requireRole } from '../middleware/auth';
 import { validate } from '../middleware/validation';
 import { z } from 'zod';
@@ -104,9 +103,9 @@ router.get('/', authenticate, requireRole('OWNER', 'OFFICER', 'ADMIN'), async (r
  * GET /api/v1/instruments/:id
  * Get single instrument by ID
  */
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', authenticate, async (req, res): Promise<any> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const instrument = await prisma.instrument.findUnique({
       where: { id },
@@ -119,9 +118,6 @@ router.get('/:id', authenticate, async (req, res) => {
           },
         },
         applications: {
-          orderBy: { createdAt: 'desc' },
-        },
-        certificates: {
           orderBy: { createdAt: 'desc' },
         },
       },
@@ -162,7 +158,7 @@ router.get('/:id', authenticate, async (req, res) => {
  * POST /api/v1/instruments
  * Create new instrument (Owner only)
  */
-router.post('/', authenticate, requireRole('OWNER'), validate(createInstrumentSchema), async (req, res) => {
+router.post('/', authenticate, requireRole('OWNER'), validate(createInstrumentSchema), async (req, res): Promise<any> => {
   try {
     const { type, manufacturer, model, serialNumber, ratedCapacity, verificationInterval } = req.body;
 
@@ -198,10 +194,10 @@ router.post('/', authenticate, requireRole('OWNER'), validate(createInstrumentSc
       },
     });
 
-    res.status(201).json({ instrument });
+    return res.status(201).json({ instrument });
   } catch (error) {
     console.error('Create instrument error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'Failed to create instrument.',
@@ -214,9 +210,9 @@ router.post('/', authenticate, requireRole('OWNER'), validate(createInstrumentSc
  * PUT /api/v1/instruments/:id
  * Update instrument
  */
-router.put('/:id', authenticate, requireRole('OWNER'), validate(updateInstrumentSchema), async (req, res) => {
+router.put('/:id', authenticate, requireRole('OWNER'), validate(updateInstrumentSchema), async (req, res): Promise<any> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const updateData = req.body;
 
     const instrument = await prisma.instrument.findUnique({
@@ -246,14 +242,14 @@ router.put('/:id', authenticate, requireRole('OWNER'), validate(updateInstrument
     const { status, ...allowedUpdates } = updateData;
 
     const updated = await prisma.instrument.update({
-      where: { id },
+      where: { id: id as string },
       data: allowedUpdates,
     });
 
-    res.json({ instrument: updated });
+    return res.json({ instrument: updated });
   } catch (error) {
     console.error('Update instrument error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
         message: 'Failed to update instrument.',

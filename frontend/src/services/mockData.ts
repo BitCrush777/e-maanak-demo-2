@@ -86,6 +86,9 @@ export interface MockCertificate {
   status: 'VALID' | 'EXPIRED' | 'REVOKED' | 'INVALID';
   revokedAt?: string;
   revocationReason?: string;
+  ruleCode?: string;
+  ruleVersion?: string;
+  ruleDescription?: string;
   instrument: {
     type: string;
     manufacturer: string;
@@ -266,6 +269,9 @@ const INITIAL_CERTIFICATES: MockCertificate[] = [
     certificateNumber: 'CERT-2026-INSP-9981',
     verificationInspectionId: 'insp-001',
     qrToken: 'demo-qr-token-1',
+    ruleCode: 'WEIGHING_SCALE_V1',
+    ruleVersion: 'v1.0',
+    ruleDescription: 'Standard Verification Procedure for Non-Automatic Weighing Instruments',
     issueDate: new Date(Date.now() - 28 * 24 * 3600 * 1000).toISOString(),
     expiryDate: new Date(Date.now() + 337 * 24 * 3600 * 1000).toISOString(),
     status: 'VALID',
@@ -386,7 +392,13 @@ export const mockStore = {
       localStorage.setItem(STORAGE_KEYS.CERTIFICATES, JSON.stringify(INITIAL_CERTIFICATES));
       return INITIAL_CERTIFICATES;
     }
-    return JSON.parse(raw);
+    const certs: MockCertificate[] = JSON.parse(raw);
+    return certs.map((c) => ({
+      ...c,
+      ruleCode: c.ruleCode || 'WEIGHING_SCALE_V1',
+      ruleVersion: c.ruleVersion || 'v1.0',
+      ruleDescription: c.ruleDescription || 'Standard Verification Procedure for Non-Automatic Weighing Instruments',
+    }));
   },
 
   getCertificateByToken(token: string): MockCertificate | undefined {
@@ -432,6 +444,8 @@ export const mockStore = {
     let cert: MockCertificate | undefined;
     if (result === 'PASS' && inst) {
       const certificates = this.getCertificates();
+      const rules = this.getRules();
+      const matchedRule = rules.find((r) => r.id === data.ruleId);
       const certNumber = `CERT-${new Date().getFullYear()}-INSP-${Math.floor(1000 + Math.random() * 9000)}`;
       const qrToken = `qr-tok-${Date.now().toString(36)}`;
       const expiry = new Date();
@@ -442,6 +456,9 @@ export const mockStore = {
         certificateNumber: certNumber,
         verificationInspectionId: app.inspection.id,
         qrToken,
+        ruleCode: matchedRule?.ruleCode || 'WEIGHING_SCALE_V1',
+        ruleVersion: matchedRule?.ruleVersion ? `v${matchedRule.ruleVersion}` : 'v1.0',
+        ruleDescription: matchedRule?.description || 'Standard Verification Procedure for Non-Automatic Weighing Instruments',
         issueDate: new Date().toISOString(),
         expiryDate: expiry.toISOString(),
         status: 'VALID',

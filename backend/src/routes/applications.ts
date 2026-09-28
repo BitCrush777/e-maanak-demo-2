@@ -1,5 +1,5 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { PrismaClient, ApplicationStatus, InspectionResult, CertificateStatus } from '@prisma/client';
+import { Router } from 'express';
+import { PrismaClient, ApplicationStatus, InspectionResult, CertificateStatus, InstrumentStatus } from '@prisma/client';
 import Decimal from 'decimal.js';
 import { authenticate, requireRole } from '../middleware/auth';
 import { validate } from '../middleware/validation';
@@ -111,9 +111,9 @@ router.get('/', authenticate, async (req, res) => {
  * GET /api/v1/applications/:id
  * Get single application
  */
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', authenticate, async (req, res): Promise<any> => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const application = await prisma.verificationApplication.findUnique({
       where: { id },

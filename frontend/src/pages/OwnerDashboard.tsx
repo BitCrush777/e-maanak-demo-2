@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { CertificateDocument, CertificateData } from '../components/certificate/CertificateDocument';
 
 export const OwnerDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -12,6 +13,7 @@ export const OwnerDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'instruments' | 'applications' | 'certificates'>('instruments');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [selectedCert, setSelectedCert] = useState<CertificateData | null>(null);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -441,18 +443,27 @@ export const OwnerDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center space-x-1 text-xs text-slate-500 font-mono">
                   <span>QR:</span>
                   <span className="truncate max-w-[120px]">{cert.qrToken}</span>
                 </div>
-                <Link
-                  to={`/verify/${cert.qrToken}`}
-                  className="px-3.5 py-1.5 bg-sovereign-navy text-white text-xs font-semibold rounded hover:bg-blue-900 transition flex items-center space-x-1"
-                >
-                  <span>Open Official Certificate</span>
-                  <span>↗</span>
-                </Link>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setSelectedCert(cert)}
+                    type="button"
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg transition"
+                  >
+                    Preview / Print
+                  </button>
+                  <Link
+                    to={`/verify/${cert.qrToken}`}
+                    className="px-3 py-1.5 bg-sovereign-navy text-white text-xs font-semibold rounded-lg hover:bg-blue-900 transition flex items-center space-x-1"
+                  >
+                    <span>Verify</span>
+                    <span>↗</span>
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
@@ -583,6 +594,30 @@ export const OwnerDashboard: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Official Certificate Full Preview Modal */}
+      {selectedCert && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-xs p-3 sm:p-6 flex justify-center items-start">
+          <div className="relative w-full max-w-4xl my-2 sm:my-4">
+            <div className="print-hide absolute top-2 right-2 sm:top-3 sm:right-3 z-30">
+              <button
+                onClick={() => setSelectedCert(null)}
+                className="bg-white/95 hover:bg-white text-slate-700 hover:text-slate-950 p-2 rounded-full shadow-lg border border-slate-300 transition"
+                title="Close Certificate Preview"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <CertificateDocument
+              data={selectedCert}
+              showToolbar={true}
+              onClose={() => setSelectedCert(null)}
+            />
           </div>
         </div>
       )}

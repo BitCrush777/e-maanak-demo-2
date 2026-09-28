@@ -90,9 +90,9 @@ router.get('/', authenticate, async (req, res) => {
  * GET /api/v1/certificates/:certificateNumber
  * Get certificate by number
  */
-router.get('/:certificateNumber', authenticate, async (req, res) => {
+router.get('/:certificateNumber', authenticate, async (req, res): Promise<any> => {
   try {
-    const { certificateNumber } = req.params;
+    const certificateNumber = req.params.certificateNumber as string;
 
     const certificate = await prisma.certificate.findUnique({
       where: { certificateNumber },
@@ -100,6 +100,13 @@ router.get('/:certificateNumber', authenticate, async (req, res) => {
         verificationInspection: {
           include: {
             readings: true,
+            rule: {
+              select: {
+                ruleCode: true,
+                ruleVersion: true,
+                description: true,
+              },
+            },
             officer: {
               select: {
                 id: true,
@@ -133,9 +140,11 @@ router.get('/:certificateNumber', authenticate, async (req, res) => {
       });
     }
 
+    const cert: any = certificate;
+
     // Authorization check for owners
     if (req.user!.role === 'OWNER') {
-      const instrumentId = certificate.verificationInspection.application.instrumentId;
+      const instrumentId = cert.verificationInspection?.application?.instrumentId;
       const instrument = await prisma.instrument.findUnique({
         where: { id: instrumentId },
       });
@@ -150,7 +159,7 @@ router.get('/:certificateNumber', authenticate, async (req, res) => {
       }
     }
 
-    res.json({ certificate });
+    return res.json({ certificate });
   } catch (error) {
     console.error('Get certificate error:', error);
     res.status(500).json({
@@ -166,9 +175,9 @@ router.get('/:certificateNumber', authenticate, async (req, res) => {
  * POST /api/v1/certificates/:certificateNumber/revoke
  * Revoke certificate (Officer/Admin only)
  */
-router.post('/:certificateNumber/revoke', authenticate, requireRole('OFFICER', 'ADMIN'), async (req, res) => {
+router.post('/:certificateNumber/revoke', authenticate, requireRole('OFFICER', 'ADMIN'), async (req, res): Promise<any> => {
   try {
-    const { certificateNumber } = req.params;
+    const certificateNumber = req.params.certificateNumber as string;
     const { revocationReason } = req.body;
 
     if (!revocationReason) {

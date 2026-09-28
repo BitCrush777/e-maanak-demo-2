@@ -10,15 +10,22 @@ const router = Router();
  * Public certificate verification via QR token
  * No authentication required
  */
-router.get('/verify/:token', verificationLimiter, async (req, res) => {
+router.get('/verify/:token', verificationLimiter, async (req, res): Promise<any> => {
   try {
-    const { token } = req.params;
+    const token = req.params.token as string;
 
     const certificate = await prisma.certificate.findUnique({
       where: { qrToken: token },
       include: {
         verificationInspection: {
           include: {
+            rule: {
+              select: {
+                ruleCode: true,
+                ruleVersion: true,
+                description: true,
+              },
+            },
             application: {
               include: {
                 instrument: {
@@ -27,6 +34,7 @@ router.get('/verify/:token', verificationLimiter, async (req, res) => {
                     manufacturer: true,
                     model: true,
                     serialNumber: true,
+                    ratedCapacity: true,
                   },
                 },
               },
@@ -58,17 +66,19 @@ router.get('/verify/:token', verificationLimiter, async (req, res) => {
       });
     }
 
+    const cert: any = certificate;
+
     // Determine current status dynamically
-    let status = certificate.status;
+    let status = cert.status;
     let message = '';
 
     if (status === CertificateStatus.REVOKED) {
       message = 'This certificate has been revoked.';
-    } else if (new Date() > certificate.expiryDate) {
+    } else if (new Date() > cert.expiryDate) {
       // Update expired status
       if (status === CertificateStatus.VALID) {
         await prisma.certificate.update({
-          where: { id: certificate.id },
+          where: { id: cert.id },
           data: { status: CertificateStatus.EXPIRED },
         });
         status = CertificateStatus.EXPIRED;
@@ -81,21 +91,27 @@ router.get('/verify/:token', verificationLimiter, async (req, res) => {
     }
 
     // Return sanitized public data only
-    res.json({
+    return res.json({
       status,
       message,
       certificate: {
-        certificateNumber: certificate.certificateNumber,
-        issueDate: certificate.issueDate,
-        expiryDate: certificate.expiryDate,
+        certificateNumber: cert.certificateNumber,
+        qrToken: cert.qrToken,
+        issueDate: cert.issueDate,
+        expiryDate: cert.expiryDate,
+        ruleCode: cert.verificationInspection?.rule?.ruleCode,
+        ruleVersion: cert.verificationInspection?.rule?.ruleVersion,
+        ruleDescription: cert.verificationInspection?.rule?.description,
         instrument: {
-          type: certificate.verificationInspection.application.instrument.type,
-          manufacturer: certificate.verificationInspection.application.instrument.manufacturer,
-          model: certificate.verificationInspection.application.instrument.model,
-          serialNumber: certificate.verificationInspection.application.instrument.serialNumber,
+          type: cert.verificationInspection?.application?.instrument?.type,
+          manufacturer: cert.verificationInspection?.application?.instrument?.manufacturer,
+          model: cert.verificationInspection?.application?.instrument?.model,
+          serialNumber: cert.verificationInspection?.application?.instrument?.serialNumber,
+          ratedCapacity: cert.verificationInspection?.application?.instrument?.ratedCapacity,
         },
-        verificationOfficer: certificate.verificationInspection.officer.fullName,
-        result: certificate.verificationInspection.result,
+        verificationOfficer: cert.verificationInspection?.officer?.fullName,
+        result: cert.verificationInspection?.result,
+        readings: cert.verificationInspection?.readings,
       },
     });
   } catch (error) {
